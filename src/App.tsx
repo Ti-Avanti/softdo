@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet } from 'lucide-react'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 
@@ -20,7 +20,8 @@ interface UpdateInfo {
 
 const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
-const VERSION = 'v1.1.0'
+const OPACITY_KEY = 'softdo-opacity'
+const VERSION = 'v1.1.1'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -36,13 +37,36 @@ function App() {
     } catch { /* Ignore parse errors */ }
     return []
   })
+  
+  const [opacity, setOpacity] = useState(() => {
+    const saved = localStorage.getItem(OPACITY_KEY)
+    return saved ? parseFloat(saved) : 1
+  })
+  
   const [isPinned, setIsPinned] = useState(false)
+  const [showOpacityControl, setShowOpacityControl] = useState(false)
   const [, setTick] = useState(0)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  const opacityRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }, [todos])
+
+  useEffect(() => {
+    localStorage.setItem(OPACITY_KEY, opacity.toString())
+  }, [opacity])
+
+  // Click outside to close opacity control
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (opacityRef.current && !opacityRef.current.contains(event.target as Node)) {
+        setShowOpacityControl(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60000)
@@ -130,10 +154,13 @@ function App() {
   return (
     <div className="h-screen w-screen p-4 bg-transparent">
       {/* Main Container - solid background with subtle border */}
-      <div className="relative h-full w-full bg-[#f8f7fc] rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+      <div 
+        className="relative h-full w-full rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200"
+        style={{ backgroundColor: `rgba(248, 247, 252, ${opacity})` }}
+      >
         
         {/* Window Controls */}
-        <div className="flex items-center justify-between px-5 py-4 app-drag-region">
+        <div className="flex items-center justify-between px-5 py-4 app-drag-region relative z-50">
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -149,6 +176,45 @@ function App() {
           </motion.div>
           
           <div className="flex items-center gap-1.5 app-no-drag">
+            {/* Opacity Control */}
+            <div className="relative" ref={opacityRef}>
+              <motion.button
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setShowOpacityControl(!showOpacityControl)}
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                  showOpacityControl ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/40'
+                }`}
+              >
+                <Droplet size={11} fill={showOpacityControl ? 'currentColor' : 'none'} />
+              </motion.button>
+              
+              <AnimatePresence>
+                {showOpacityControl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                    className="absolute top-9 left-1/2 -translate-x-1/2 w-32 p-3 bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/50 flex flex-col gap-2 items-center z-50 origin-top"
+                  >
+                    <div className="w-full flex justify-between text-[10px] text-neu-muted font-medium px-0.5">
+                      <span>Opacity</span>
+                      <span>{Math.round(opacity * 100)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.2"
+                      max="1"
+                      step="0.01"
+                      value={opacity}
+                      onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                      className="w-full h-1.5 bg-violet-100 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500 [&::-webkit-slider-thumb]:shadow-sm outline-none"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
@@ -187,7 +253,7 @@ function App() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="px-5 overflow-hidden flex-shrink-0"
+              className="px-5 overflow-hidden flex-shrink-0 relative z-40"
             >
               <div className="bg-violet-50/80 rounded-xl p-3 flex items-start gap-3 border border-violet-100 mb-2">
                 <div className="p-1.5 bg-violet-100 rounded-lg text-violet-600 mt-0.5">
@@ -225,7 +291,7 @@ function App() {
         </AnimatePresence>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 pb-5">
+        <div className="flex-1 overflow-y-auto px-5 pb-5 relative z-30">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
