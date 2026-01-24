@@ -308,13 +308,16 @@ async function checkForUpdates() {
             res.on('end', () => {
                 try {
                     const release = JSON.parse(data);
-                    const latestVersion = release.tag_name;
-                    // Simple string comparison for now, assuming vX.Y.Z format
-                    // Ideally use semver
-                    if (latestVersion && latestVersion !== CURRENT_VERSION) {
+                    const latestVersionTag = release.tag_name; // e.g. "v1.2.4"
+                    
+                    // Normalize versions
+                    const currentNorm = CURRENT_VERSION.replace(/^v/, '');
+                    const latestNorm = latestVersionTag ? latestVersionTag.replace(/^v/, '') : '';
+
+                    if (latestNorm && latestNorm !== currentNorm) {
                         resolve({ 
                             hasUpdate: true, 
-                            latestVersion, 
+                            latestVersion: latestVersionTag, 
                             releaseUrl: release.html_url,
                             releaseNotes: release.body 
                         });
