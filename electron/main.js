@@ -292,3 +292,42 @@ app.on('before-quit', () => {
   tray?.destroy();
 });
 
+// Helper to check updates
+async function checkForUpdates() {
+  try {
+    const options = {
+        hostname: 'api.github.com',
+        path: `/repos/${GITHUB_REPO}/releases/latest`,
+        headers: { 'User-Agent': 'SoftDo-App' }
+    };
+    
+    return new Promise((resolve) => {
+        https.get(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const release = JSON.parse(data);
+                    const latestVersion = release.tag_name;
+                    // Simple string comparison for now, assuming vX.Y.Z format
+                    // Ideally use semver
+                    if (latestVersion && latestVersion !== CURRENT_VERSION) {
+                        resolve({ 
+                            hasUpdate: true, 
+                            latestVersion, 
+                            releaseUrl: release.html_url,
+                            releaseNotes: release.body 
+                        });
+                    } else {
+                        resolve({ hasUpdate: false });
+                    }
+                } catch (e) {
+                    resolve({ hasUpdate: false, error: e.message });
+                }
+            });
+        }).on('error', (e) => resolve({ hasUpdate: false, error: e.message }));
+    });
+  } catch (error) {
+    return { hasUpdate: false, error: error.message };
+  }
+}
