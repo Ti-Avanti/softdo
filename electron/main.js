@@ -44,8 +44,17 @@ function createWindow() {
     mainWindow?.setAlwaysOnTop(shouldPin);
   });
 
-  ipcMain.on('resize-window', (event, { width, height }) => {
-    mainWindow?.setSize(Math.round(width), Math.round(height));
+  ipcMain.on('resize-window', (event, { width, height, x, y }) => {
+    if (x !== undefined && y !== undefined) {
+      mainWindow?.setBounds({ 
+        x: Math.round(x), 
+        y: Math.round(y), 
+        width: Math.round(width), 
+        height: Math.round(height) 
+      });
+    } else {
+      mainWindow?.setSize(Math.round(width), Math.round(height));
+    }
   });
 
   ipcMain.on('close-to-tray', () => {

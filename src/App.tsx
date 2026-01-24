@@ -53,16 +53,23 @@ function App() {
   
   // Resize logic
   const isResizing = useRef(false)
+  const resizeDir = useRef<string>('')
   const startPos = useRef({ x: 0, y: 0 })
-  const startSize = useRef({ w: 0, h: 0 })
+  const startBounds = useRef({ x: 0, y: 0, w: 0, h: 0 })
 
-  const handleResizeStart = (e: React.MouseEvent) => {
+  const handleResizeStart = (e: React.MouseEvent, dir: string) => {
     e.preventDefault()
     isResizing.current = true
+    resizeDir.current = dir
     startPos.current = { x: e.screenX, y: e.screenY }
-    // Initialize startSize with current outer dimensions
-    startSize.current = { w: window.outerWidth, h: window.outerHeight }
-    document.body.style.cursor = 'nwse-resize'
+    startBounds.current = { 
+      x: window.screenX, 
+      y: window.screenY, 
+      w: window.outerWidth, 
+      h: window.outerHeight 
+    }
+    
+    document.body.style.cursor = dir === 'se' ? 'nwse-resize' : 'nesw-resize'
     document.body.style.userSelect = 'none'
   }
 
@@ -72,14 +79,41 @@ function App() {
     requestAnimationFrame(() => {
       const deltaX = e.screenX - startPos.current.x
       const deltaY = e.screenY - startPos.current.y
+      const dir = resizeDir.current
       
-      const newWidth = Math.max(320, startSize.current.w + deltaX)
-      const newHeight = Math.max(480, startSize.current.h + deltaY)
+      let newW = startBounds.current.w
+      let newH = startBounds.current.h
+      let newX = startBounds.current.x
+      const newY = startBounds.current.y // Top doesn't change for bottom resize
+
+      // Calculate dimensions based on direction
+      if (dir === 'se') {
+        newW = Math.max(320, startBounds.current.w + deltaX)
+        newH = Math.max(480, startBounds.current.h + deltaY)
+      } else if (dir === 'sw') {
+        // For left resize: width changes inverse to delta, X changes by delta
+        // We need to ensuring width >= minWidth
+        const rawW = startBounds.current.w - deltaX
+        if (rawW >= 320) {
+            newW = rawW
+            newX = startBounds.current.x + deltaX
+        } else {
+            // Clamped
+            newW = 320
+            newX = startBounds.current.x + (startBounds.current.w - 320)
+        }
+        newH = Math.max(480, startBounds.current.h + deltaY)
+      }
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { ipcRenderer } = require('electron')
-        ipcRenderer.send('resize-window', { width: newWidth, height: newHeight })
+        ipcRenderer.send('resize-window', { 
+            width: newW, 
+            height: newH,
+            x: dir === 'sw' ? newX : undefined,
+            y: dir === 'sw' ? newY : undefined
+        })
       } catch { /* Not in Electron */ }
     })
   }, [])
@@ -477,15 +511,29 @@ function App() {
         </div>
 
         {/* Glow Resize Handle (Bottom-Right) */}
+        {/* Resize Handles */}
+        {/* Bottom Right */}
         <div 
           className="absolute bottom-0 right-0 w-8 h-8 flex items-end justify-end z-50 group app-no-drag cursor-nwse-resize"
-          onMouseDown={handleResizeStart}
+          onMouseDown={(e) => handleResizeStart(e, 'se')}
         >
-          {/* Invisible trigger area with hover effect */}
           <div 
-            className="absolute bottom-0 right-0 w-full h-full rounded-tl-3xl transition-all duration-500 ease-out opacity-0 group-hover:opacity-100"
+            className="absolute bottom-0 right-0 w-full h-full rounded-tl-3xl transition-all duration-300 ease-out opacity-0 group-hover:opacity-100"
             style={{ 
-              background: `radial-gradient(circle at bottom right, rgba(139, 92, 246, ${Math.max(0.3, opacity * 0.6)}) 0%, transparent 70%)` 
+              background: `radial-gradient(circle at bottom right, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)` 
+            }}
+          />
+        </div>
+
+        {/* Bottom Left */}
+        <div 
+          className="absolute bottom-0 left-0 w-8 h-8 flex items-end justify-start z-50 group app-no-drag cursor-nesw-resize"
+          onMouseDown={(e) => handleResizeStart(e, 'sw')}
+        >
+          <div 
+            className="absolute bottom-0 left-0 w-full h-full rounded-tr-3xl transition-all duration-300 ease-out opacity-0 group-hover:opacity-100"
+            style={{ 
+              background: `radial-gradient(circle at bottom left, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)` 
             }}
           />
         </div>
