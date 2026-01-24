@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2 } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight } from 'lucide-react'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 
@@ -11,7 +11,15 @@ export interface Todo {
   dueTime?: Date | null;
 }
 
+interface UpdateInfo {
+  hasUpdate: boolean;
+  latestVersion: string;
+  releaseUrl: string;
+  releaseNotes: string;
+}
+
 const STORAGE_KEY = 'softdo-todos'
+const SKIP_VERSION_KEY = 'softdo-skip-version'
 const VERSION = 'v1.1.0'
 
 function App() {
@@ -30,7 +38,8 @@ function App() {
   })
   const [isPinned, setIsPinned] = useState(false)
   const [, setTick] = useState(0)
-
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }, [todos])
@@ -38,6 +47,29 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Auto-update check
+  useEffect(() => {
+    const checkUpdate = async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { ipcRenderer } = require('electron');
+        const result = await ipcRenderer.invoke('check-for-updates');
+        
+        if (result.hasUpdate) {
+          const skippedVersion = localStorage.getItem(SKIP_VERSION_KEY);
+          if (skippedVersion !== result.latestVersion) {
+            // Delay showing updated notification to not annoy user immediately on startup
+            setTimeout(() => {
+              setUpdateInfo(result);
+            }, 5000);
+          }
+        }
+      } catch { /* Not in Electron or network error */ }
+    }
+
+    checkUpdate();
   }, [])
 
   const addTodo = (text: string, dueTime?: Date | null) => {
@@ -73,6 +105,26 @@ function App() {
       const { ipcRenderer } = require('electron');
       ipcRenderer.send('toggle-always-on-top', !isPinned);
     } catch { /* Not in Electron */ }
+  }
+
+  const handleUpdate = () => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.send('open-release-page');
+    } catch { /* Not in Electron */ }
+    setUpdateInfo(null);
+  }
+
+  const skipUpdate = () => {
+    if (updateInfo) {
+      localStorage.setItem(SKIP_VERSION_KEY, updateInfo.latestVersion);
+      setUpdateInfo(null);
+    }
+  }
+
+  const closeUpdate = () => {
+    setUpdateInfo(null);
   }
 
   return (
@@ -127,6 +179,50 @@ function App() {
             </motion.button>
           </div>
         </div>
+
+        {/* Update Notification */}
+        <AnimatePresence>
+          {updateInfo && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="px-5 overflow-hidden flex-shrink-0"
+            >
+              <div className="bg-violet-50/80 rounded-xl p-3 flex items-start gap-3 border border-violet-100 mb-2">
+                <div className="p-1.5 bg-violet-100 rounded-lg text-violet-600 mt-0.5">
+                  <Bell size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-violet-900">New Version {updateInfo.latestVersion}</span>
+                    <button onClick={closeUpdate} className="text-violet-400 hover:text-violet-600 transition-colors">
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-violet-600/80 mb-2 leading-relaxed">
+                    A new version is available with improved features and fixes.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleUpdate}
+                      className="flex-1 bg-violet-600 text-white text-[10px] font-medium py-1.5 rounded-lg hover:bg-violet-700 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <span>Update</span>
+                      <ArrowRight size={10} />
+                    </button>
+                    <button 
+                      onClick={skipUpdate}
+                      className="px-3 bg-white text-violet-500 text-[10px] font-medium py-1.5 rounded-lg border border-violet-100 hover:bg-violet-50 transition-colors"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 pb-5">
