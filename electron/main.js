@@ -27,6 +27,8 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    minWidth: 320,
+    minHeight: 480,
     icon: path.join(__dirname, '../build/icon.png')
   });
 
@@ -37,6 +39,10 @@ function createWindow() {
 
   ipcMain.on('toggle-always-on-top', (event, shouldPin) => {
     mainWindow?.setAlwaysOnTop(shouldPin);
+  });
+
+  ipcMain.on('resize-window', (event, { width, height }) => {
+    mainWindow?.setSize(Math.round(width), Math.round(height));
   });
 
   ipcMain.on('close-to-tray', () => {

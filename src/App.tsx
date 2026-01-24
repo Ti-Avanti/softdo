@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, ArrowDownRight } from 'lucide-react'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 
@@ -21,7 +21,7 @@ interface UpdateInfo {
 const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
-const VERSION = 'v1.1.1'
+const VERSION = 'v1.1.2'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -48,6 +48,54 @@ function App() {
   const [, setTick] = useState(0)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
   const opacityRef = useRef<HTMLDivElement>(null)
+  
+  // Resize logic
+  const isResizing = useRef(false)
+  const startPos = useRef({ x: 0, y: 0 })
+  const startSize = useRef({ w: 0, h: 0 })
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    isResizing.current = true
+    startPos.current = { x: e.screenX, y: e.screenY }
+    startSize.current = { w: window.outerWidth, h: window.outerHeight }
+    document.body.style.cursor = 'nwse-resize'
+    
+    // Disable selection during resize
+    document.body.style.userSelect = 'none'
+  }
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return
+
+    requestAnimationFrame(() => {
+      const deltaX = e.screenX - startPos.current.x
+      const deltaY = e.screenY - startPos.current.y
+      
+      const newWidth = Math.max(320, startSize.current.w + deltaX)
+      const newHeight = Math.max(480, startSize.current.h + deltaY)
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { ipcRenderer } = require('electron')
+        ipcRenderer.send('resize-window', { width: newWidth, height: newHeight })
+      } catch { /* Not in Electron */ }
+    })
+  }, [])
+
+  const handleResizeEnd = useCallback(() => {
+    isResizing.current = false
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+  }, [])
+
+  useEffect(() => {
+    document.addEventListener('mousemove', handleResizeMove)
+    document.addEventListener('mouseup', handleResizeEnd)
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMove)
+      document.removeEventListener('mouseup', handleResizeEnd)
+    }
+  }, [handleResizeMove, handleResizeEnd])
   
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
@@ -152,10 +200,10 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen p-4 bg-transparent">
+    <div className="h-screen w-screen p-4 bg-transparent flex flex-col">
       {/* Main Container - solid background with subtle border */}
       <div 
-        className="relative h-full w-full rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200"
+        className="relative flex-1 w-full rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200"
         style={{ backgroundColor: `rgba(248, 247, 252, ${opacity})` }}
       >
         
@@ -380,6 +428,14 @@ function App() {
               </AnimatePresence>
             </div>
           </motion.div>
+        </div>
+
+        {/* Resize Handle */}
+        <div 
+          className="absolute bottom-0 right-0 w-6 h-6 flex items-end justify-end p-1 cursor-nwse-resize z-50 group app-no-drag"
+          onMouseDown={handleResizeStart}
+        >
+          <ArrowDownRight size={16} className="text-neu-muted/30 group-hover:text-neu-muted/60 transition-colors" />
         </div>
       </div>
     </div>
