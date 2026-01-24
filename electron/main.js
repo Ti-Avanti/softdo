@@ -8,7 +8,10 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let tray = null;
-const CURRENT_VERSION = '1.1.0';
+import { readFileSync } from 'fs';
+
+const packageJson = JSON.parse(readFileSync(path.join(__dirname, '../package.json')));
+const CURRENT_VERSION = packageJson.version;
 const GITHUB_REPO = 'xxomega2077xx/softdo';
 const UPDATE_CHECK_KEY = 'softdo-skip-update';
 const SKIP_VERSION_KEY = 'softdo-skip-version';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, ArrowDownRight } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles } from 'lucide-react'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 
@@ -21,6 +21,7 @@ interface UpdateInfo {
 const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
+const LAST_RUN_VERSION_KEY = 'softdo-version'
 const VERSION = 'v1.1.2'
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
   const [showOpacityControl, setShowOpacityControl] = useState(false)
   const [, setTick] = useState(0)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  const [showWelcome, setShowWelcome] = useState(false)
   const opacityRef = useRef<HTMLDivElement>(null)
   
   // Resize logic
@@ -55,12 +57,12 @@ function App() {
   const startSize = useRef({ w: 0, h: 0 })
 
   const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
     isResizing.current = true
     startPos.current = { x: e.screenX, y: e.screenY }
+    // Initialize startSize with current outer dimensions
     startSize.current = { w: window.outerWidth, h: window.outerHeight }
     document.body.style.cursor = 'nwse-resize'
-    
-    // Disable selection during resize
     document.body.style.userSelect = 'none'
   }
 
@@ -121,6 +123,15 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
+  // Check version for welcome message
+  useEffect(() => {
+    const lastRunVersion = localStorage.getItem(LAST_RUN_VERSION_KEY)
+    if (lastRunVersion !== VERSION) {
+      setTimeout(() => setShowWelcome(true), 1000)
+      localStorage.setItem(LAST_RUN_VERSION_KEY, VERSION)
+    }
+  }, [])
+
   // Auto-update check
   useEffect(() => {
     const checkUpdate = async () => {
@@ -129,10 +140,13 @@ function App() {
         const { ipcRenderer } = require('electron');
         const result = await ipcRenderer.invoke('check-for-updates');
         
-        if (result.hasUpdate) {
+        // Ensure strictly newer version
+        const currentVerNum = VERSION.replace('v', '');
+        const latestVerNum = result.latestVersion.replace('v', '');
+
+        if (result.hasUpdate && latestVerNum !== currentVerNum) {
           const skippedVersion = localStorage.getItem(SKIP_VERSION_KEY);
           if (skippedVersion !== result.latestVersion) {
-            // Delay showing updated notification to not annoy user immediately on startup
             setTimeout(() => {
               setUpdateInfo(result);
             }, 5000);
@@ -161,12 +175,11 @@ function App() {
   }
 
   const closeApp = () => window.close()
-
   const minimizeApp = () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { ipcRenderer } = require('electron');
-      ipcRenderer.send('minimize-window');
+      ipcRenderer.send('minimize-window'); // Uses minimize-to-tray if configured
     } catch { /* Not in Electron */ }
   }
 
@@ -195,13 +208,12 @@ function App() {
     }
   }
 
-  const closeUpdate = () => {
-    setUpdateInfo(null);
-  }
+  const closeUpdate = () => setUpdateInfo(null)
+  const closeWelcome = () => setShowWelcome(false)
 
   return (
     <div className="h-screen w-screen p-4 bg-transparent flex flex-col">
-      {/* Main Container - solid background with subtle border */}
+      {/* Main Container */}
       <div 
         className="relative flex-1 w-full rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200"
         style={{ backgroundColor: `rgba(248, 247, 252, ${opacity})` }}
@@ -220,7 +232,7 @@ function App() {
               className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-purple-600" 
             />
             <span className="text-sm font-semibold text-neu-text/80 tracking-wide">SoftDo</span>
-            <span className="text-[10px] font-medium text-neu-muted/40 tracking-wider">{VERSION}</span>
+            <span className="text-[10px] font-medium text-neu-muted/40 tracking-wider hover:text-violet-500 transition-colors cursor-default" title={`Build: ${VERSION}`}>{VERSION}</span>
           </motion.div>
           
           <div className="flex items-center gap-1.5 app-no-drag">
@@ -294,13 +306,47 @@ function App() {
           </div>
         </div>
 
+        {/* Welcome Notification */}
+        <AnimatePresence>
+          {showWelcome && !updateInfo && (
+            <motion.div
+              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+              animate={{ height: 'auto', opacity: 1, marginBottom: 8 }}
+              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+              className="px-5 overflow-hidden flex-shrink-0 relative z-40"
+            >
+              <div className="bg-gradient-to-r from-violet-50 to-purple-50/80 rounded-xl p-3 flex items-start gap-3 border border-violet-100 shadow-sm relative overflow-hidden">
+                 {/* Sparkle decoration */}
+                <div className="absolute top-0 right-0 p-2 text-violet-200 opacity-20 transform translate-x-1/3 -translate-y-1/3">
+                  <Sparkles size={80} strokeWidth={1} />
+                </div>
+
+                <div className="p-1.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg text-white mt-0.5 shadow-sm z-10">
+                  <Sparkles size={14} />
+                </div>
+                <div className="flex-1 min-w-0 z-10">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-violet-900 tracking-tight">Welcome to SoftDo {VERSION}!</span>
+                    <button onClick={closeWelcome} className="text-violet-400 hover:text-violet-600 transition-colors p-0.5 hover:bg-violet-100/50 rounded-full">
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-violet-600/90 leading-relaxed font-medium">
+                    Enjoy the new <span className="text-violet-700 font-bold">Resize</span> & <span className="text-violet-700 font-bold">Opacity</span> features.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Update Notification */}
         <AnimatePresence>
           {updateInfo && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+              animate={{ height: 'auto', opacity: 1, marginBottom: 8 }}
+              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
               className="px-5 overflow-hidden flex-shrink-0 relative z-40"
             >
               <div className="bg-violet-50/80 rounded-xl p-3 flex items-start gap-3 border border-violet-100 mb-2">
@@ -315,7 +361,7 @@ function App() {
                     </button>
                   </div>
                   <p className="text-[10px] text-violet-600/80 mb-2 leading-relaxed">
-                    A new version is available with improved features and fixes.
+                    A new version is available with improved features.
                   </p>
                   <div className="flex items-center gap-2">
                     <button 
@@ -430,12 +476,18 @@ function App() {
           </motion.div>
         </div>
 
-        {/* Resize Handle */}
+        {/* Glow Resize Handle (Bottom-Right) */}
         <div 
-          className="absolute bottom-0 right-0 w-6 h-6 flex items-end justify-end p-1 cursor-nwse-resize z-50 group app-no-drag"
+          className="absolute bottom-0 right-0 w-8 h-8 flex items-end justify-end z-50 group app-no-drag cursor-nwse-resize"
           onMouseDown={handleResizeStart}
         >
-          <ArrowDownRight size={16} className="text-neu-muted/30 group-hover:text-neu-muted/60 transition-colors" />
+          {/* Invisible trigger area with hover effect */}
+          <div 
+            className="absolute bottom-0 right-0 w-full h-full rounded-tl-3xl transition-all duration-500 ease-out opacity-0 group-hover:opacity-100"
+            style={{ 
+              background: `radial-gradient(circle at bottom right, rgba(139, 92, 246, ${Math.max(0.3, opacity * 0.6)}) 0%, transparent 70%)` 
+            }}
+          />
         </div>
       </div>
     </div>
