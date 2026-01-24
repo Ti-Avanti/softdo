@@ -90,20 +90,27 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.5-beta
-          name: SoftDo v1.0.5 Beta
+          tag_name: v1.1.0
+          name: SoftDo v1.1.0
           body: |
-            ## ✨ SoftDo v1.0.5 Beta
+            ## ✨ SoftDo v1.1.0
 
-            A beautiful, minimal desktop todo widget with glassmorphism design.
-            精美简约的桌面待办小组件，采用玻璃拟态设计。
+            A beautiful desktop todo widget with glassmorphism design.
+            精美的桌面待办小组件，采用玻璃拟态设计。
+
+            ### 🆕 What's New | 新功能
+
+            - 🔧 **Fixed Shadow Issue** - Clean transparent window on all backgrounds
+            - 🖥️ **System Tray Support** - Minimize to tray, quick access menu
+            - 🔄 **Auto Update Check** - Checks for new versions from GitHub
+            - 📌 **Desktop Shortcut** - Automatically created during installation
 
             ### 📥 Downloads | 下载
 
             | Platform | File |
             |----------|------|
-            | Windows | `SoftDo-1.0.5-beta-Windows.exe` |
-            | macOS | `SoftDo-1.0.5-beta-macOS.dmg` |
+            | Windows | `SoftDo-1.1.0-Windows.exe` |
+            | macOS | `SoftDo-1.1.0-macOS.dmg` |
 
             ### ✨ Features | 功能
             - 🎨 Premium glassmorphism design | 高级玻璃拟态设计
@@ -111,6 +118,7 @@ jobs:
             - 💾 Auto-save to local storage | 本地自动保存
             - 🖱️ Draggable desktop widget | 可拖动桌面小组件
             - 📌 Always-on-top option | 窗口置顶选项
+            - 🔔 System tray with tooltip | 系统托盘与提示
           files: release-files/*
           draft: false
-          prerelease: true
+          prerelease: false

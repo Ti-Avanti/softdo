@@ -12,7 +12,7 @@ export interface Todo {
 }
 
 const STORAGE_KEY = 'softdo-todos'
-const VERSION = 'Beta 1.0.5'
+const VERSION = 'v1.1.0'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -76,12 +76,9 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen p-5">
-      {/* Soft outer glow */}
-      <div className="absolute inset-5 rounded-[36px] bg-gradient-to-b from-violet-200/20 to-purple-300/10 blur-2xl pointer-events-none" />
-      
-      {/* Main Container */}
-      <div className="relative h-full w-full bg-white/80 backdrop-blur-2xl rounded-[32px] overflow-hidden flex flex-col border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)]">
+    <div className="h-screen w-screen p-4 bg-transparent">
+      {/* Main Container - solid background with subtle border */}
+      <div className="relative h-full w-full bg-[#f8f7fc] rounded-[28px] overflow-hidden flex flex-col border border-[#e8e6f0]/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         
         {/* Window Controls */}
         <div className="flex items-center justify-between px-5 py-4 app-drag-region">

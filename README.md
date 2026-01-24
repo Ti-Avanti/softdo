@@ -7,13 +7,13 @@
 **精美的桌面待办小组件**
 
 [![Build](https://github.com/xxomega2077xx/softdo/actions/workflows/build.yml/badge.svg)](https://github.com/xxomega2077xx/softdo/actions)
-[![Version](https://img.shields.io/badge/version-1.0.5--beta-purple)](https://github.com/xxomega2077xx/softdo/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-purple)](https://github.com/xxomega2077xx/softdo/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-blue)](https://github.com/xxomega2077xx/softdo/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 <br/>
 
-> 🎨 **Glassmorphism Design** • ⏰ **Smart Due Times** • 💾 **Auto Save** • 📌 **Always on Top**
+> 🎨 **Glassmorphism Design** • ⏰ **Smart Due Times** • 💾 **Auto Save** • 📌 **System Tray**
 
 </div>
 
@@ -27,11 +27,20 @@
 
 ---
 
+## 🆕 What's New in v1.1.0 | 新版本特性
+
+- 🔧 **Fixed Shadow Issue** - Clean transparent window on all backgrounds
+- 🖥️ **System Tray** - Minimize to tray, right-click menu, hover tooltip
+- 🔄 **Auto Update** - Checks for new versions from GitHub with smart notification
+- 📌 **Desktop Shortcut** - Automatically created during Windows installation
+
+---
+
 ## ✨ Features | 功能特点
 
 ### 🎨 Premium Design | 高级设计
 
-- **Glassmorphism UI** - Frosted glass effect with layered shadows
+- **Glassmorphism UI** - Clean, elegant appearance on any wallpaper
 - **Smooth Animations** - Satisfying checkbox completion effects
 - **Custom Window Controls** - Minimal, clean window buttons
 - **Outfit Typography** - Modern, readable font
@@ -48,7 +57,8 @@
 - **Frameless Window** - Clean, borderless design
 - **Draggable** - Move anywhere on your desktop
 - **Always on Top** - Pin to stay above other windows
-- **Compact Size** - 320×480px, perfect for the corner
+- **System Tray** - Minimize to tray, click to show/hide
+- **Compact Size** - 360×540px, perfect for the corner
 
 ### 💾 Data & Storage | 数据存储
 
@@ -56,16 +66,22 @@
 - **No Account Needed** - Works completely offline
 - **Clear All** - One-click to clear completed tasks
 
+### 🔄 Auto Updates | 自动更新
+
+- **Version Check** - Automatically checks GitHub for new releases
+- **Smart Notifications** - Non-intrusive update prompts
+- **Skip Option** - "Don't remind me" for network issues
+
 ---
 
 ## 📥 Download | 下载
 
 Get the latest version for your platform:
 
-| Platform    | Download                                                                                 | Notes                     |
-| ----------- | ---------------------------------------------------------------------------------------- | ------------------------- |
-| **Windows** | [SoftDo-1.0.5-beta-Windows.exe](https://github.com/xxomega2077xx/softdo/releases/latest) | Windows 10/11             |
-| **macOS**   | [SoftDo-1.0.5-beta-macOS.dmg](https://github.com/xxomega2077xx/softdo/releases/latest)   | macOS 12+ (Apple Silicon) |
+| Platform    | Download                                                                            | Notes                                        |
+| ----------- | ----------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Windows** | [SoftDo-1.1.0-Windows.exe](https://github.com/xxomega2077xx/softdo/releases/latest) | Windows 10/11, auto-creates desktop shortcut |
+| **macOS**   | [SoftDo-1.1.0-macOS.dmg](https://github.com/xxomega2077xx/softdo/releases/latest)   | macOS 12+ (Apple Silicon)                    |
 
 👉 [View All Releases](https://github.com/xxomega2077xx/softdo/releases)
 
@@ -107,7 +123,7 @@ softdo/
 │   ├── App.tsx              # Main application
 │   └── index.css            # Global styles
 ├── electron/
-│   └── main.js              # Electron main process
+│   └── main.js              # Electron main process (tray, updates)
 ├── build/
 │   ├── icon.ico             # Windows icon
 │   └── icon.png             # macOS icon
@@ -132,9 +148,11 @@ softdo/
 
 ## 🗺️ Roadmap | 路线图
 
+- [x] System tray support
+- [x] Auto update checking
+- [x] Desktop shortcut on install
 - [ ] Task categories / tags
 - [ ] Keyboard shortcuts
-- [ ] System tray support
 - [ ] Drag to reorder tasks
 - [ ] Multiple todo lists
 - [ ] Theme customization

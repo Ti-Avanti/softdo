@@ -1,7 +1,7 @@
 {
   "name": "softdo",
   "private": true,
-  "version": "1.0.5-beta",
+  "version": "1.1.0",
   "author": "Evan",
   "description": "A beautiful desktop todo widget with glassmorphism design, smart due times, and smooth animations",
   "type": "module",
@@ -51,12 +51,20 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "build/**/*"
     ],
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
       "artifactName": "SoftDo-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SoftDo"
     },
     "mac": {
       "target": ["dmg", "zip"],
@@ -64,9 +72,14 @@
       "category": "public.app-category.productivity",
       "artifactName": "SoftDo-${version}-macOS.${ext}"
     },
+    "dmg": {
+      "title": "SoftDo",
+      "icon": "build/icon.png"
+    },
     "linux": {
       "target": ["AppImage"],
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "artifactName": "SoftDo-${version}-Linux.${ext}"
     }
   }
 }
