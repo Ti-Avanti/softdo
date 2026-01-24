@@ -7,7 +7,7 @@
 **精美的桌面待办小组件**
 
 [![Build](https://github.com/xxomega2077xx/softdo/actions/workflows/build.yml/badge.svg)](https://github.com/xxomega2077xx/softdo/actions)
-[![Version](https://img.shields.io/badge/version-1.1.3-purple)](https://github.com/xxomega2077xx/softdo/releases)
+[![Version](https://img.shields.io/badge/version-1.1.2-purple)](https://github.com/xxomega2077xx/softdo/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-blue)](https://github.com/xxomega2077xx/softdo/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -27,7 +27,7 @@
 
 ---
 
-## 🆕 What's New in v1.1.3 | 新版本特性
+## 🆕 What's New in v1.1.2 | 新版本特性
 
 - ↔️ **Window Resizing** - Drag bottom-right grip to resize window freely
 - 💧 **Opacity Control** - Adjust window transparency (20%-100%) via droplet menu
