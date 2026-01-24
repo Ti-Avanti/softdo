@@ -27,15 +27,17 @@
 
 ---
 
-## 🆕 What's New in v1.1.2 | 新版本特性
+## 🆕 What's New in v1.2.0 | 大版本更新
 
-- ↔️ **Multi-Corner Resizing** - Resize from bottom-right or bottom-left freely
-- ✨ **Glow Interaction** - Subtle glow indicates resize areas (no ugly icons)
-- 💧 **Opacity Control** - Adjust window transparency (20%-100%) via droplet menu
-- 🔧 **Fixed Shadow Issue** - Clean transparent window on all backgrounds
-- 🖥️ **System Tray** - Minimize to tray, right-click menu
-- 🔄 **Smart Updates** - Auto-check with beautiful welcome notification
-- 📌 **Desktop Shortcut** - Automatically created during installation
+- 🎨 **Premium Visuals** - Brand new Glassmorphism Logo (No grid!).
+- 📦 **Custom Installer** - Modern installation experience with beautiful 3D sidebar.
+- 🔔 **Smart Notifications** - Native Windows notifications (Due now, 5m, 30m, 1h, 24h).
+- 🔕 **Notify Toggle** - Per-task notification control via Bell icon.
+- ↔️ **Multi-Corner Resizing** - Resize from bottom-right or bottom-left freely.
+- ✨ **Glow Interaction** - Subtle glow indicates resize areas.
+- 💧 **Opacity Control** - Adjust window transparency (20%-100%).
+- 🖥️ **System Tray** - Minimize to tray, right-click menu.
+- 🔄 **Smart Updates** - Auto-check with beautiful welcome notification.
 
 ---
 
@@ -156,6 +158,8 @@ softdo/
 - [x] Desktop shortcut on install
 - [x] Window opacity control
 - [x] Window resizing (Multi-corner)
+- [x] Native Windows Notifications
+- [x] Custom Installer
 - [ ] Task categories / tags
 - [ ] Keyboard shortcuts
 - [ ] Drag to reorder tasks

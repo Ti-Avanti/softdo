@@ -1,4 +1,4 @@
-import { Check, Trash2, Clock } from 'lucide-react'
+import { Check, Trash2, Clock, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import type { Todo } from '../App'
@@ -7,6 +7,7 @@ interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onToggleNotify: (id: string) => void;
 }
 
 function formatTimeRemaining(dueTime: Date): { text: string; urgent: boolean; overdue: boolean } {
@@ -29,7 +30,7 @@ function formatTimeRemaining(dueTime: Date): { text: string; urgent: boolean; ov
   return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
 }
 
-export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: TodoItemProps) {
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
@@ -115,13 +116,30 @@ export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25 }}
               className={clsx(
-                "flex items-center gap-1 mt-1 text-xs font-medium overflow-hidden",
+                "flex items-center gap-2 mt-1 text-xs font-medium overflow-hidden",
                 timeInfo.overdue ? 'text-red-500' :
                 timeInfo.urgent ? 'text-amber-500' : 'text-neu-muted/50'
               )}
             >
-              <Clock size={10} />
-              <span>{timeInfo.text}</span>
+              <div className="flex items-center gap-1">
+                <Clock size={10} />
+                <span>{timeInfo.text}</span>
+              </div>
+              
+              {/* Bell Icon */}
+              <button 
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   onToggleNotify(todo.id);
+                 }}
+                 className={clsx(
+                   "p-1 rounded-full transition-colors",
+                   todo.notify ? "text-violet-500 bg-violet-50" : "hover:bg-violet-50 hover:text-violet-500 text-neu-muted/30"
+                 )}
+                 title={todo.notify ? "Notifications ON" : "Notifications OFF"}
+              >
+                <Bell size={10} fill={todo.notify ? "currentColor" : "none"} />
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

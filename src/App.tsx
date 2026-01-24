@@ -9,6 +9,7 @@ export interface Todo {
   text: string;
   completed: boolean;
   dueTime?: Date | null;
+  notify?: boolean;
 }
 
 interface UpdateInfo {
@@ -22,7 +23,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.1.2'
+const VERSION = 'v1.2.0'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -204,9 +205,22 @@ function App() {
     setTodos(prev => prev.filter(t => t.id !== id))
   }
 
+  const toggleNotify = (id: string) => {
+    setTodos(prev => prev.map(t => t.id === id ? { ...t, notify: !t.notify } : t))
+  }
+
   const clearAll = () => {
     setTodos([])
   }
+
+  // Sync with main process for notifications
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ipcRenderer } = require('electron')
+      ipcRenderer.send('update-notification-schedule', todos)
+    } catch { /* Not in Electron */ }
+  }, [todos])
 
   const closeApp = () => window.close()
   const minimizeApp = () => {
@@ -501,7 +515,8 @@ function App() {
                     <TodoList 
                       todos={todos} 
                       onToggle={toggleTodo} 
-                      onDelete={deleteTodo} 
+                      onDelete={deleteTodo}
+                      onToggleNotify={toggleNotify}
                     />
                   </motion.div>
                 )}

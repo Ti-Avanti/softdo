@@ -1,7 +1,7 @@
 {
   "name": "softdo",
   "private": true,
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "Evan",
   "description": "A beautiful desktop todo widget with glassmorphism design, smart due times, and smooth animations",
   "type": "module",
@@ -64,7 +64,12 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SoftDo"
+      "shortcutName": "SoftDo",
+      "installerIcon": "build/icon.png",
+      "uninstallerIcon": "build/icon.png",
+      "installerSidebar": "build/installerSidebar.png",
+      "uninstallerSidebar": "build/installerSidebar.png",
+      "runAfterFinish": true
     },
     "mac": {
       "target": ["dmg", "zip"],

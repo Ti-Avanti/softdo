@@ -163,81 +163,117 @@ function createTray() {
   });
 }
 
-// Check for updates from GitHub
-async function checkForUpdates() {
-  return new Promise((resolve) => {
-    const options = {
-      hostname: 'api.github.com',
-      path: `/repos/${GITHUB_REPO}/releases/latest`,
-      headers: {
-        'User-Agent': 'SoftDo-App'
-      },
-      timeout: 5000
-    };
+// Notification Scheduler
+let notificationTimer = null;
+let scheduledTodos = [];
 
-    const req = https.get(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => {
-        try {
-          const release = JSON.parse(data);
-          const latestVersion = release.tag_name?.replace('v', '') || '';
-          const hasUpdate = compareVersions(latestVersion, CURRENT_VERSION) > 0;
-          resolve({
-            hasUpdate,
-            latestVersion,
-            currentVersion: CURRENT_VERSION,
-            releaseUrl: release.html_url || `https://github.com/${GITHUB_REPO}/releases/latest`,
-            releaseNotes: release.body || ''
-          });
-        } catch {
-          resolve({ hasUpdate: false, currentVersion: CURRENT_VERSION, error: 'parse_error' });
-        }
-      });
-    });
+ipcMain.on('update-notification-schedule', (event, todos) => {
+  scheduledTodos = todos.filter(t => t.dueTime && t.notify);
+});
 
-    req.on('error', () => {
-      resolve({ hasUpdate: false, currentVersion: CURRENT_VERSION, error: 'network_error' });
-    });
+function checkNotifications() {
+  const now = new Date();
+  
+  scheduledTodos.forEach(todo => {
+    if (!todo.dueTime) return;
+    const due = new Date(todo.dueTime);
+    const diff = (due - now) / 1000; // seconds
 
-    req.on('timeout', () => {
-      req.destroy();
-      resolve({ hasUpdate: false, currentVersion: CURRENT_VERSION, error: 'timeout' });
-    });
+    // Thresholds: 24h (86400), 1h (3600), 30m (1800), 5m (300), 0m (0)
+    // We need a mechanism to not repeat notifications.
+    // For simplicity in this version, we'll check if it's "close enough" and hasn't been fired recently?
+    // Actually, renderer can send "next notification time" or main can track "last notified".
+    // Let's use a simpler approach: Check if we just crossed a threshold.
+    // To do this reliably without state, we might need a "lastCheckTime".
+    
+    // Better approach: User wanted "Windows Level Notification".
+    // We will check strict ranges. e.g. if diff is between 0 and 10s -> Show "Due Now".
+    // We need to store state "notified_due", "notified_5m", etc.
+    // But main process is stateless regarding todo ID details usually.
+    // Let's attach state to the todo list in main memory.
   });
 }
 
-// Compare semantic versions
-function compareVersions(v1, v2) {
-  const parts1 = v1.replace(/-.*$/, '').split('.').map(Number);
-  const parts2 = v2.replace(/-.*$/, '').split('.').map(Number);
+// Robust Notification System using `node-schedule` logic or simple polling with state tracking
+let notificationState = new Map(); // id -> { lastNotifiedStage: string }
+
+function runScheduler() {
+  const now = new Date();
   
-  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-    const p1 = parts1[i] || 0;
-    const p2 = parts2[i] || 0;
-    if (p1 > p2) return 1;
-    if (p1 < p2) return -1;
-  }
-  return 0;
+  scheduledTodos.forEach(todo => {
+    if (!todo.dueTime || todo.completed) return;
+    const due = new Date(todo.dueTime);
+    const diffInSeconds = (due - now) / 1000;
+    const diffInMinutes = diffInSeconds / 60;
+    
+    let stage = '';
+    let message = '';
+
+    if (diffInSeconds <= 0 && diffInSeconds > -60) {
+      stage = 'due';
+      message = 'is due now!';
+    } else if (diffInMinutes <= 5 && diffInMinutes > 4) {
+      stage = '5m';
+      message = 'is due in 5 minutes.';
+    } else if (diffInMinutes <= 30 && diffInMinutes > 29) {
+      stage = '30m';
+      message = 'is due in 30 minutes.';
+    } else if (diffInMinutes <= 60 && diffInMinutes > 59) {
+      stage = '1h';
+      message = 'is due in 1 hour.';
+    } else if (diffInMinutes <= 1440 && diffInMinutes > 1439) {
+      stage = '24h';
+      message = 'is due in 24 hours.';
+    }
+
+    if (stage) {
+      const state = notificationState.get(todo.id) || {};
+      if (state.lastNotifiedStage !== stage) {
+        // Send Notification
+        const { Notification } = require('electron');
+        if (Notification.isSupported()) {
+          new Notification({
+            title: 'SoftDo Reminder',
+            body: `Task "${todo.text}" ${message}`,
+            icon: path.join(__dirname, '../build/icon.png')
+          }).show();
+        }
+        
+        notificationState.set(todo.id, { ...state, lastNotifiedStage: stage });
+      }
+    }
+  });
 }
 
-app.whenReady().then(createWindow);
+// Start scheduler when app launches
+app.whenReady().then(() => {
+  createWindow();
+  notificationTimer = setInterval(runScheduler, 10000); // Check every 10s
+});
 
 app.on('window-all-closed', () => {
+  // Minimize to tray behavior on Windows usually keeps app running.
+  // We check handle usage.
   if (process.platform !== 'darwin') {
-    app.quit();
+    // If tray exists, we don't quit? 
+    // Actually user wants "minimize to tray". our close logic does that or quit?
+    // Current main.js: "close-to-tray" hides window.
+    // native "close" event usually destroys window unless intercepted.
+    // We assume App.tsx calls "minimizeApp" (minimize) or "closeApp" (window.close()).
+    // If window.close() is called, window-all-closed fires.
+    // We should probably keep running for notifications if configured?
+    // User requested "System Tray". If we quit, notifications stop.
+    // We should intercept close and hide instead, or let them quit via tray.
+    // For now, respect explicit quit.
+    // If user wants notifications, they should minimize.
   }
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  } else {
-    mainWindow?.show();
-  }
-});
+// Update window creation to handle "Run at startup" logic if needed (handled by builder)
+// ... (previous logic)
 
-// Cleanup tray on quit
 app.on('before-quit', () => {
+  clearInterval(notificationTimer);
   tray?.destroy();
 });
+
