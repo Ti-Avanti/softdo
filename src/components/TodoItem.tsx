@@ -1,4 +1,4 @@
-import { Check, Trash2, Clock } from 'lucide-react'
+import { Check, Trash2, Clock, Pencil } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
@@ -8,6 +8,7 @@ interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, text: string) => void;
 }
 
 interface TimeInfo {
@@ -40,8 +41,10 @@ function formatTimeRemaining(dueTime: Date): TimeInfo {
   return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
 }
 
-export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoItemProps) {
   const [, setTick] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editText, setEditText] = useState(todo.text)
   
   // Update every second if urgent
   useEffect(() => {
@@ -108,28 +111,57 @@ export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
         </AnimatePresence>
       </motion.button>
 
-      {/* Task Text & Due Time */}
-      <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="relative">
-          <motion.span 
-            animate={{ 
-              color: todo.completed ? 'rgba(99, 110, 114, 0.4)' : 'rgba(45, 52, 54, 1)'
-            }}
-            transition={{ duration: 0.3 }}
-            className="block text-sm font-medium select-none truncate"
-          >
-            {todo.text}
-          </motion.span>
-          
-          {/* Strikethrough line - black, consistent */}
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: todo.completed ? 1 : 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: todo.completed ? 0.1 : 0 }}
-            style={{ originX: 0 }}
-            className="absolute top-1/2 left-0 right-0 h-[1px] bg-neu-text/60 pointer-events-none"
-          />
-        </div>
+  {/* Task Text & Due Time */}
+      <div className="flex-1 min-w-0 overflow-hidden relative">
+        {isEditing ? (
+            <form 
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editText.trim()) {
+                        onRename(todo.id, editText.trim());
+                        setIsEditing(false);
+                    }
+                }}
+                className="w-full"
+            >
+                <input
+                    type="text"
+                    autoFocus
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={() => {
+                        if (editText.trim()) {
+                            onRename(todo.id, editText.trim());
+                        } else {
+                            setEditText(todo.text); // Reset if empty
+                        }
+                        setIsEditing(false);
+                    }}
+                    className="w-full bg-transparent border-none outline-none text-sm font-medium text-neu-text p-0 m-0"
+                />
+            </form>
+        ) : (
+            <div className="relative group/text">
+              <motion.span 
+                animate={{ 
+                  color: todo.completed ? 'rgba(99, 110, 114, 0.4)' : 'rgba(45, 52, 54, 1)'
+                }}
+                transition={{ duration: 0.3 }}
+                className="block text-sm font-medium select-none truncate pr-6" // Padding for edit icon if needed, but we put it outside
+              >
+                {todo.text}
+              </motion.span>
+              
+              {/* Strikethrough line */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: todo.completed ? 1 : 0 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: todo.completed ? 0.1 : 0 }}
+                style={{ originX: 0 }}
+                className="absolute top-1/2 left-0 right-0 h-[1px] bg-neu-text/60 pointer-events-none"
+              />
+            </div>
+        )}
         
         {/* Due Time */}
         <AnimatePresence>
@@ -153,6 +185,24 @@ export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Edit Button - hover only, not for completed */}
+      {!todo.completed && (
+        <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+                setEditText(todo.text);
+                setIsEditing(true);
+            }}
+            className={clsx(
+            "w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50 transition-all duration-300 cursor-pointer flex-shrink-0 opacity-0 group-hover:opacity-100",
+            )}
+            title="Rename"
+        >
+            <Pencil size={14} />
+        </motion.button>
+      )}
 
       {/* Delete Button - always visible for completed, hover for incomplete */}
       <motion.button

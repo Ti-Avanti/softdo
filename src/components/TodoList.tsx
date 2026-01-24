@@ -6,9 +6,10 @@ interface TodoListProps {
   todos: Todo[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, text: string) => void;
 }
 
-export default function TodoList({ todos, onToggle, onDelete }: TodoListProps) {
+export default function TodoList({ todos, onToggle, onDelete, onRename }: TodoListProps) {
   return (
     <div className="space-y-2">
       <AnimatePresence initial={false} mode='popLayout'>
@@ -18,6 +19,7 @@ export default function TodoList({ todos, onToggle, onDelete }: TodoListProps) {
             todo={todo} 
             onToggle={onToggle} 
             onDelete={onDelete}
+            onRename={onRename}
           />
         ))}
       </AnimatePresence>

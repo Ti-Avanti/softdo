@@ -22,7 +22,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.4'
+const VERSION = 'v1.2.5'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -203,6 +203,10 @@ function App() {
 
   const deleteTodo = (id: string) => {
     setTodos(prev => prev.filter(t => t.id !== id))
+  }
+  
+  const renameTodo = (id: string, newText: string) => {
+    setTodos(prev => prev.map(t => t.id === id ? { ...t, text: newText } : t))
   }
 
   const clearAll = () => {
@@ -547,6 +551,7 @@ function App() {
                       todos={todos} 
                       onToggle={toggleTodo} 
                       onDelete={deleteTodo}
+                      onRename={renameTodo}
                     />
                   </motion.div>
                 )}
