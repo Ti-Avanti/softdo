@@ -65,8 +65,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "SoftDo",
-      "installerIcon": "build/icon.png",
-      "uninstallerIcon": "build/icon.png",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
       "installerSidebar": "build/installerSidebar.png",
       "uninstallerSidebar": "build/installerSidebar.png",
       "runAfterFinish": true
