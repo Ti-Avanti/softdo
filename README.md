@@ -7,7 +7,7 @@
 **精美的桌面待办小组件**
 
 [![Build](https://github.com/xxomega2077xx/softdo/actions/workflows/build.yml/badge.svg)](https://github.com/xxomega2077xx/softdo/actions)
-[![Version](https://img.shields.io/badge/version-1.1.0-purple)](https://github.com/xxomega2077xx/softdo/releases)
+[![Version](https://img.shields.io/badge/version-1.1.3-purple)](https://github.com/xxomega2077xx/softdo/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-blue)](https://github.com/xxomega2077xx/softdo/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -27,12 +27,14 @@
 
 ---
 
-## 🆕 What's New in v1.1.0 | 新版本特性
+## 🆕 What's New in v1.1.3 | 新版本特性
 
+- ↔️ **Window Resizing** - Drag bottom-right grip to resize window freely
+- 💧 **Opacity Control** - Adjust window transparency (20%-100%) via droplet menu
 - 🔧 **Fixed Shadow Issue** - Clean transparent window on all backgrounds
-- 🖥️ **System Tray** - Minimize to tray, right-click menu, hover tooltip
-- 🔄 **Auto Update** - Checks for new versions from GitHub with smart notification
-- 📌 **Desktop Shortcut** - Automatically created during Windows installation
+- 🖥️ **System Tray** - Minimize to tray, right-click menu
+- 🔄 **Auto Update** - Checks for new versions automatically
+- 📌 **Desktop Shortcut** - Automatically created during installation
 
 ---
 
@@ -43,7 +45,7 @@
 - **Glassmorphism UI** - Clean, elegant appearance on any wallpaper
 - **Smooth Animations** - Satisfying checkbox completion effects
 - **Custom Window Controls** - Minimal, clean window buttons
-- **Outfit Typography** - Modern, readable font
+- **Opacity Control** - Adjustable transparency for perfect integration
 
 ### 📋 Task Management | 任务管理
 
@@ -55,10 +57,10 @@
 ### 🖥️ Desktop Widget | 桌面小组件
 
 - **Frameless Window** - Clean, borderless design
-- **Draggable** - Move anywhere on your desktop
+- **Draggable & Resizable** - Move and resize anywhere on your desktop
 - **Always on Top** - Pin to stay above other windows
 - **System Tray** - Minimize to tray, click to show/hide
-- **Compact Size** - 360×540px, perfect for the corner
+- **Compact Size** - scalable from compact to large
 
 ### 💾 Data & Storage | 数据存储
 
@@ -80,8 +82,8 @@ Get the latest version for your platform:
 
 | Platform    | Download                                                                            | Notes                                        |
 | ----------- | ----------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Windows** | [SoftDo-1.1.0-Windows.exe](https://github.com/xxomega2077xx/softdo/releases/latest) | Windows 10/11, auto-creates desktop shortcut |
-| **macOS**   | [SoftDo-1.1.0-macOS.dmg](https://github.com/xxomega2077xx/softdo/releases/latest)   | macOS 12+ (Apple Silicon)                    |
+| **Windows** | [SoftDo-1.1.2-Windows.exe](https://github.com/xxomega2077xx/softdo/releases/latest) | Windows 10/11, auto-creates desktop shortcut |
+| **macOS**   | [SoftDo-1.1.2-macOS.dmg](https://github.com/xxomega2077xx/softdo/releases/latest)   | macOS 12+ (Apple Silicon)                    |
 
 👉 [View All Releases](https://github.com/xxomega2077xx/softdo/releases)
 
@@ -151,6 +153,8 @@ softdo/
 - [x] System tray support
 - [x] Auto update checking
 - [x] Desktop shortcut on install
+- [x] Window opacity control
+- [x] Window resizing
 - [ ] Task categories / tags
 - [ ] Keyboard shortcuts
 - [ ] Drag to reorder tasks

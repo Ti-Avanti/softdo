@@ -107,7 +107,8 @@ jobs:
 
             ### 🆕 What's New | 新功能
 
-            - 💧 **Opacity Control** - Adjust window transparency (20%-100%)
+            - ↔️ **Window Resizing** - Drag bottom-right corner to resize freely
+            - 💧 **Opacity Control** - Droplet icon to adjust transparency (20%-100%)
             - 🔧 **Shadow Fix** - Clean transparent window on all backgrounds
             - 🖥️ **System Tray** - Minimize to tray, quick access menu
             - 🔄 **Auto Update** - Checks for new versions automatically
