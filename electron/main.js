@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell, Notification } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
@@ -230,7 +230,6 @@ function runScheduler() {
       const state = notificationState.get(todo.id) || {};
       if (state.lastNotifiedStage !== stage) {
         // Send Notification
-        const { Notification } = require('electron');
         if (Notification.isSupported()) {
           new Notification({
             title: 'SoftDo Reminder',

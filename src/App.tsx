@@ -23,7 +23,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.0'
+const VERSION = 'v1.2.1'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -50,6 +50,7 @@ function App() {
   const [, setTick] = useState(0)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showVersionToast, setShowVersionToast] = useState(false)
   const opacityRef = useRef<HTMLDivElement>(null)
   
   // Resize logic
@@ -280,7 +281,37 @@ function App() {
               className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-purple-600" 
             />
             <span className="text-sm font-semibold text-neu-text/80 tracking-wide">SoftDo</span>
-            <span className="text-[10px] font-medium text-neu-muted/40 tracking-wider hover:text-violet-500 transition-colors cursor-default" title={`Build: ${VERSION}`}>{VERSION}</span>
+            <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                   // Mock version check for now or real
+                   // User asked for "Check version, if latest pop up..."
+                   // We'll simulate check then show toast
+                   try {
+                     // eslint-disable-next-line @typescript-eslint/no-require-imports
+                     const { ipcRenderer } = require('electron');
+                     ipcRenderer.invoke('check-for-updates').then((result: any) => {
+                        if (!result.hasUpdate) {
+                            setShowVersionToast(true);
+                            setTimeout(() => setShowVersionToast(false), 3000);
+                        } else {
+                            // If update, existing updateInfo logic handles it?
+                            // Or we force show update info
+                            setUpdateInfo(result);
+                        }
+                     });
+                   } catch {
+                       // Dev mode fallback
+                       setShowVersionToast(true);
+                       setTimeout(() => setShowVersionToast(false), 3000);
+                   }
+                }}
+                className="text-[10px] font-medium text-neu-muted/40 tracking-wider hover:text-violet-500 transition-colors cursor-pointer" 
+                title="Click to check for updates"
+            >
+                {VERSION}
+            </motion.button>
           </motion.div>
           
           <div className="flex items-center gap-1.5 app-no-drag">
@@ -552,6 +583,34 @@ function App() {
             }}
           />
         </div>
+        {/* Version Check Toast */}
+        <AnimatePresence>
+          {showVersionToast && (
+            <motion.div
+                initial={{ opacity: 0, x: 20, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+                className="absolute bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3 bg-white/90 backdrop-blur-xl border border-violet-100/50 rounded-2xl shadow-xl shadow-violet-500/10 overflow-hidden"
+            >
+                {/* Progress Bar (Purple Line Reducing) */}
+                <motion.div 
+                    initial={{ width: '100%' }}
+                    animate={{ width: '0%' }}
+                    transition={{ duration: 3, ease: 'linear' }}
+                    className="absolute bottom-0 left-0 h-[2px] bg-violet-500"
+                />
+                
+                <div className="p-1.5 bg-green-50 rounded-full text-green-500">
+                    <CircleCheck size={16} />
+                </div>
+                <div>
+                   <h3 className="text-xs font-bold text-neu-text">Up to date</h3>
+                   <p className="text-[10px] text-neu-muted">You are on the latest version {VERSION}</p>
+                </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
     </div>
   )

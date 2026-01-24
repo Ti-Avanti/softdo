@@ -1,4 +1,5 @@
 import { Check, Trash2, Clock, Bell } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import type { Todo } from '../App'
@@ -10,7 +11,14 @@ interface TodoItemProps {
   onToggleNotify: (id: string) => void;
 }
 
-function formatTimeRemaining(dueTime: Date): { text: string; urgent: boolean; overdue: boolean } {
+interface TimeInfo {
+  text: string;
+  urgent: boolean;
+  overdue: boolean;
+  secondsLeft?: number;
+}
+
+function formatTimeRemaining(dueTime: Date): TimeInfo {
   const now = new Date()
   const diff = dueTime.getTime() - now.getTime()
   
@@ -22,6 +30,9 @@ function formatTimeRemaining(dueTime: Date): { text: string; urgent: boolean; ov
     return { text: `${Math.floor(hours / 24)}d overdue`, urgent: true, overdue: true }
   }
   
+  const seconds = Math.floor(diff / 1000)
+  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, secondsLeft: seconds }
+  
   const mins = Math.floor(diff / 60000)
   if (mins < 60) return { text: `${mins}m left`, urgent: mins < 30, overdue: false }
   const hours = Math.floor(mins / 60)
@@ -31,6 +42,20 @@ function formatTimeRemaining(dueTime: Date): { text: string; urgent: boolean; ov
 }
 
 export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: TodoItemProps) {
+  const [, setTick] = useState(0)
+  
+  // Update every second if urgent
+  useEffect(() => {
+    if (!todo.dueTime) return
+    const now = new Date()
+    const diff = new Date(todo.dueTime).getTime() - now.getTime()
+    // If less than 1 min, tick every second
+    if (diff > 0 && diff < 60000) {
+        const interval = setInterval(() => setTick(t => t + 1), 1000)
+        return () => clearInterval(interval)
+    }
+  }, [todo.dueTime])
+
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
@@ -126,20 +151,48 @@ export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: T
                 <span>{timeInfo.text}</span>
               </div>
               
-              {/* Bell Icon */}
-              <button 
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   onToggleNotify(todo.id);
-                 }}
-                 className={clsx(
-                   "p-1 rounded-full transition-colors",
-                   todo.notify ? "text-violet-500 bg-violet-50" : "hover:bg-violet-50 hover:text-violet-500 text-neu-muted/30"
-                 )}
-                 title={todo.notify ? "Notifications ON" : "Notifications OFF"}
-              >
-                <Bell size={10} fill={todo.notify ? "currentColor" : "none"} />
-              </button>
+              {/* Bell Icon with Ring */}
+              <div className="relative w-5 h-5 flex items-center justify-center">
+                {/* Countdown Ring for < 1 min */}
+                {timeInfo.secondsLeft !== undefined && (
+                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 24 24">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      fill="none"
+                      stroke="#FEF3C7" // Light yellow track
+                      strokeWidth="2"
+                    />
+                    <motion.circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      fill="none"
+                      stroke="#F59E0B" // Amber-500
+                      strokeWidth="2"
+                      strokeDasharray="62.8" // 2 * pi * 10
+                      initial={{ strokeDashoffset: 0 }}
+                      animate={{ strokeDashoffset: 62.8 * (1 - timeInfo.secondsLeft / 60) }}
+                      transition={{ duration: 1, ease: "linear" }}
+                    />
+                  </svg>
+                )}
+                
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleNotify(todo.id);
+                  }}
+                  className={clsx(
+                    "relative z-10 p-0.5 rounded-full transition-colors",
+                    todo.notify ? "text-violet-500" : "text-neu-muted/30 hover:text-violet-500"
+                  )}
+                  title={todo.notify ? "Notifications ON" : "Notifications OFF"}
+                >
+                  <Bell size={10} fill={todo.notify ? "currentColor" : "none"} />
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
