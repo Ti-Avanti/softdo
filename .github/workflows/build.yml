@@ -65,3 +65,52 @@ jobs:
           path: |
             dist-electron/*.dmg
             dist-electron/*.zip
+
+  create-release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SoftDo-Windows
+          path: release-files
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SoftDo-macOS
+          path: release-files
+
+      - name: List files
+        run: ls -la release-files/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.5
+          name: SoftDo v1.0.5
+          body: |
+            ## ✨ SoftDo v1.0.5
+
+            A beautiful, minimal desktop todo widget with glassmorphism design.
+            精美简约的桌面待办小组件，采用玻璃拟态设计。
+
+            ### 📥 Downloads
+
+            | Platform | File |
+            |----------|------|
+            | Windows | `SoftDo-0.0.0.exe` |
+            | macOS | `SoftDo-0.0.0-arm64.dmg` |
+
+            ### ✨ Features
+            - Premium glassmorphism design
+            - Smart due times with countdown
+            - Auto-save to local storage
+            - Draggable desktop widget
+            - Always-on-top option
+          files: release-files/*
+          draft: false
+          prerelease: false
