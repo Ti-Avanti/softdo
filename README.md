@@ -29,11 +29,12 @@
 
 ## 🆕 What's New in v1.1.2 | 新版本特性
 
-- ↔️ **Window Resizing** - Drag bottom-right grip to resize window freely
+- ↔️ **Multi-Corner Resizing** - Resize from bottom-right or bottom-left freely
+- ✨ **Glow Interaction** - Subtle glow indicates resize areas (no ugly icons)
 - 💧 **Opacity Control** - Adjust window transparency (20%-100%) via droplet menu
 - 🔧 **Fixed Shadow Issue** - Clean transparent window on all backgrounds
 - 🖥️ **System Tray** - Minimize to tray, right-click menu
-- 🔄 **Auto Update** - Checks for new versions automatically
+- 🔄 **Smart Updates** - Auto-check with beautiful welcome notification
 - 📌 **Desktop Shortcut** - Automatically created during installation
 
 ---
@@ -154,7 +155,7 @@ softdo/
 - [x] Auto update checking
 - [x] Desktop shortcut on install
 - [x] Window opacity control
-- [x] Window resizing
+- [x] Window resizing (Multi-corner)
 - [ ] Task categories / tags
 - [ ] Keyboard shortcuts
 - [ ] Drag to reorder tasks

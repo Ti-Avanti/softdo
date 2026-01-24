@@ -111,8 +111,8 @@ function App() {
         ipcRenderer.send('resize-window', { 
             width: newW, 
             height: newH,
-            x: dir === 'sw' ? newX : undefined,
-            y: dir === 'sw' ? newY : undefined
+            x: newX,
+            y: newY
         })
       } catch { /* Not in Electron */ }
     })
