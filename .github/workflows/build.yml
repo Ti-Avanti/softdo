@@ -90,27 +90,27 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.5
-          name: SoftDo v1.0.5
+          tag_name: v1.0.5-beta
+          name: SoftDo v1.0.5 Beta
           body: |
-            ## ✨ SoftDo v1.0.5
+            ## ✨ SoftDo v1.0.5 Beta
 
             A beautiful, minimal desktop todo widget with glassmorphism design.
             精美简约的桌面待办小组件，采用玻璃拟态设计。
 
-            ### 📥 Downloads
+            ### 📥 Downloads | 下载
 
             | Platform | File |
             |----------|------|
-            | Windows | `SoftDo-0.0.0.exe` |
-            | macOS | `SoftDo-0.0.0-arm64.dmg` |
+            | Windows | `SoftDo-1.0.5-beta-Windows.exe` |
+            | macOS | `SoftDo-1.0.5-beta-macOS.dmg` |
 
-            ### ✨ Features
-            - Premium glassmorphism design
-            - Smart due times with countdown
-            - Auto-save to local storage
-            - Draggable desktop widget
-            - Always-on-top option
+            ### ✨ Features | 功能
+            - 🎨 Premium glassmorphism design | 高级玻璃拟态设计
+            - ⏰ Smart due times with countdown | 智能截止时间与倒计时
+            - 💾 Auto-save to local storage | 本地自动保存
+            - 🖱️ Draggable desktop widget | 可拖动桌面小组件
+            - 📌 Always-on-top option | 窗口置顶选项
           files: release-files/*
           draft: false
-          prerelease: false
+          prerelease: true

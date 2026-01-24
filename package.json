@@ -1,7 +1,7 @@
 {
   "name": "softdo",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.5-beta",
   "author": "Evan",
   "description": "SoftDo Desktop Widget",
   "type": "module",
@@ -55,12 +55,14 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "artifactName": "SoftDo-${version}-Windows.${ext}"
     },
     "mac": {
       "target": ["dmg", "zip"],
       "icon": "build/icon.png",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "artifactName": "SoftDo-${version}-macOS.${ext}"
     },
     "linux": {
       "target": ["AppImage"],
