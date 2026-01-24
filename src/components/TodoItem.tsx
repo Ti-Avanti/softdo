@@ -1,4 +1,4 @@
-import { Check, Trash2, Clock, Bell } from 'lucide-react'
+import { Check, Trash2, Clock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
@@ -8,7 +8,6 @@ interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onToggleNotify: (id: string) => void;
 }
 
 interface TimeInfo {
@@ -41,7 +40,7 @@ function formatTimeRemaining(dueTime: Date): TimeInfo {
   return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
   const [, setTick] = useState(0)
   
   // Update every second if urgent
@@ -149,49 +148,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: T
               <div className="flex items-center gap-1">
                 <Clock size={10} />
                 <span>{timeInfo.text}</span>
-              </div>
-              
-              {/* Bell Icon with Ring */}
-              <div className="relative w-5 h-5 flex items-center justify-center">
-                {/* Countdown Ring for < 1 min */}
-                {timeInfo.secondsLeft !== undefined && (
-                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 24 24">
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      fill="none"
-                      stroke="#DDD6FE" // violet-200
-                      strokeWidth="2"
-                    />
-                    <motion.circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      fill="none"
-                      stroke="#8B5CF6" // violet-500
-                      strokeWidth="2"
-                      strokeDasharray="62.8" // 2 * pi * 10
-                      initial={{ strokeDashoffset: 0 }}
-                      animate={{ strokeDashoffset: 62.8 * (1 - timeInfo.secondsLeft / 60) }}
-                      transition={{ duration: 1, ease: "linear" }}
-                    />
-                  </svg>
-                )}
-                
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleNotify(todo.id);
-                  }}
-                  className={clsx(
-                    "relative z-10 p-0.5 rounded-full transition-colors",
-                    todo.notify ? "text-violet-500" : "text-neu-muted/30 hover:text-violet-500"
-                  )}
-                  title={todo.notify ? "Notifications ON" : "Notifications OFF"}
-                >
-                  <Bell size={10} fill={todo.notify ? "currentColor" : "none"} />
-                </button>
               </div>
             </motion.div>
           )}

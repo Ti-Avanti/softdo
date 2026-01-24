@@ -93,9 +93,12 @@ function createWindow() {
 
 function createTray() {
   // Use a small icon for tray
+  // Use icon.png (generated high res) and let internal resizing handle it, or resize here
   const iconPath = path.join(__dirname, '../build/icon.png');
   let trayIcon = nativeImage.createFromPath(iconPath);
-  trayIcon = trayIcon.resize({ width: 16, height: 16 });
+  // nativeImage resizing handles scaling better than just loading raw?
+  // 16x16 is small. Try 24x24 or 32x32 for modern displays
+  trayIcon = trayIcon.resize({ width: 22, height: 22 }); 
   
   tray = new Tray(trayIcon);
   
@@ -252,6 +255,15 @@ function runScheduler() {
 app.whenReady().then(() => {
   createWindow();
   notificationTimer = setInterval(runScheduler, 10000); // Check every 10s
+  
+  // Auto-check for updates
+  setTimeout(() => {
+    checkForUpdates().then(update => {
+       if (update.hasUpdate && mainWindow) {
+           mainWindow.webContents.send('update-available', update);
+       }
+    });
+  }, 3000); // Check 3s after launch
 });
 
 app.on('window-all-closed', () => {
