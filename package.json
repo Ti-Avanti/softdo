@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.5-beta",
   "author": "Evan",
-  "description": "SoftDo Desktop Widget",
+  "description": "A beautiful desktop todo widget with glassmorphism design, smart due times, and smooth animations",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
