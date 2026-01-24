@@ -23,7 +23,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.1'
+const VERSION = 'v1.2.2'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -307,7 +307,7 @@ function App() {
                        setTimeout(() => setShowVersionToast(false), 3000);
                    }
                 }}
-                className="text-[10px] font-medium text-neu-muted/40 tracking-wider hover:text-violet-500 transition-colors cursor-pointer" 
+                className="app-no-drag text-[10px] font-medium text-neu-muted/40 tracking-wider hover:text-violet-500 transition-colors cursor-pointer relative z-50" 
                 title="Click to check for updates"
             >
                 {VERSION}

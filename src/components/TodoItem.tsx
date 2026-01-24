@@ -161,7 +161,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: T
                       cy="12"
                       r="10"
                       fill="none"
-                      stroke="#FEF3C7" // Light yellow track
+                      stroke="#DDD6FE" // violet-200
                       strokeWidth="2"
                     />
                     <motion.circle
@@ -169,7 +169,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onToggleNotify }: T
                       cy="12"
                       r="10"
                       fill="none"
-                      stroke="#F59E0B" // Amber-500
+                      stroke="#8B5CF6" // violet-500
                       strokeWidth="2"
                       strokeDasharray="62.8" // 2 * pi * 10
                       initial={{ strokeDashoffset: 0 }}

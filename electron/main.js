@@ -16,6 +16,10 @@ const GITHUB_REPO = 'xxomega2077xx/softdo';
 const UPDATE_CHECK_KEY = 'softdo-skip-update';
 const SKIP_VERSION_KEY = 'softdo-skip-version';
 
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.softdo.app');
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 360,
@@ -234,7 +238,7 @@ function runScheduler() {
           new Notification({
             title: 'SoftDo Reminder',
             body: `Task "${todo.text}" ${message}`,
-            icon: path.join(__dirname, '../build/icon.png')
+            icon: path.join(__dirname, '../build/icon.ico')
           }).show();
         }
         
