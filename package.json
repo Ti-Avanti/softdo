@@ -1,0 +1,70 @@
+{
+  "name": "softdo",
+  "private": true,
+  "version": "0.0.0",
+  "author": "Evan",
+  "description": "SoftDo Desktop Widget",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder --win"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.9",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.2.1",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "framer-motion": "^12.29.0",
+    "globals": "^16.5.0",
+    "lucide-react": "^0.563.0",
+    "png-to-ico": "^3.0.1",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sharp": "^0.34.5",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.softdo.app",
+    "productName": "SoftDo",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png"
+    }
+  }
+}
