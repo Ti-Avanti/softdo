@@ -1,106 +1,74 @@
-# 🟣 SoftDo
+# <div align="center"><img src="resources/icon.png" width="128" height="128" alt="SoftDo Logo"></div>
 
 <div align="center">
 
-![SoftDo Banner](https://raw.githubusercontent.com/xxomega2077xx/softdo/main/resources/banner.png)
+# SoftDo
 
-**A beautiful, fluid, and powerful desktop todo widget.**  
-_Designed for flow. Built for focus._
+**The Todo Widget That Breathes.**
 
-[![Version](https://img.shields.io/github/v/release/xxomega2077xx/softdo?style=flat-square&color=8b5cf6)](https://github.com/xxomega2077xx/softdo/releases)
-[![Downloads](https://img.shields.io/github/downloads/xxomega2077xx/softdo/total?style=flat-square&color=10b981)](https://github.com/xxomega2077xx/softdo/releases)
-[![Platform](https://img.shields.io/badge/platform-win%20%7C%20linux-gray?style=flat-square)](https://github.com/xxomega2077xx/softdo/releases)
-[![License](https://img.shields.io/github/license/xxomega2077xx/softdo?style=flat-square)](LICENSE)
-
-[Download Now](https://github.com/xxomega2077xx/softdo/releases/latest) • [Features](#-features) • [Changelog](CHANGELOG.md)
+[Download for Windows](https://github.com/xxomega2077xx/softdo/releases/latest) • [Download for Linux](https://github.com/xxomega2077xx/softdo/releases/latest) • [Features](#features)
 
 </div>
 
 ---
 
+## 🎨 Philosophy
+
+SoftDo isn't just a todo list; it's a piece of digital furniture for your desktop. Built with a "Glassmorphism First" approach, it features a frosted glass interface that adapts to your wallpaper, blurring the line between your tasks and your environment.
+
+We believe animation isn't just decoration—it's feedback. Every interaction in SoftDo is governed by a unified physics engine (`Silky Flow`), ensuring that tasks don't just appear; they glide, breathe, and settle with satisfying weight.
+
 ## ✨ Features
 
-### 🌊 Silky Smooth Flow
+### 💎 Premium Aesthetics
 
-SoftDo v1.5.0 introduces a rewritten animation engine based on premium cubic-bezier physics.
+- **Real-time Glassmorphism**: Background blurring that works seamlessly on Windows and Linux.
+- **Adaptive UI**: A responsive design that looks stunning whether pinned as a small widget or expanded as a full list.
+- **Squircle Perfection**: Every corner is smoothed with Apple-style super-ellipses for a modern, organic feel.
 
-- **Zero Jitter**: Tasks glide in with momentum.
-- **Accordion Logic**: Lists and menus expand naturally without layout shifts.
-- **Unified Feel**: Every interaction shares the same fluid DNA.
+### 🌊 Silky Animation Engine
 
-### 🔮 Glassmorphism UI
+- **No Stutter**: Powered by a custom `Cubic Bezier (0.25, 0.1, 0.25, 1.0)` physics curve.
+- **Fluid Layouts**: The window height animates smoothly ("Accordion Effect") as you add tasks or open the calendar. No jarring jumps.
+- **Staggered Entry**: Lists load with a rhythmic cascade, making even checking your tasks feel like a performance.
 
-Designed to sit beautifully on your desktop.
+### ⚡ Power User Ready
 
-- **Frosted Glass**: Real-time background blurring (Windows).
-- **Adaptive**: Looks great mainly in Light mode (Dark mode coming soon).
-- **Compact**: Tucks away when you don't need it.
-
-### ⚡ Smart Input
-
-Don't fiddle with date pickers unless you want to.
-
-- **Natural Language**: Type _"Meeting tmr 9am"_ or _"Gym in 2 hours"_.
-- **Instant Parsing**: Visual indicators confirm the detected time immediately.
-
-### 🐧 Cross-Platform
-
-Now officially supporting **Linux** (Ubuntu/Debian & AppImage) alongside **Windows**.
-
----
+- **Natural Language Parsing**: Type "Meeting tomorrow 9am" -> It sets the due date automatically.
+- **Smart Time Detection**: Recognizes "tonight", "next friday", "in 30 mins".
+- **Compact & Pin**: Keeps your focus without stealing your screen real estate.
+- **Cross-Platform**: Now fully native on **Ubuntu/Debian Linux** (.deb, .AppImage) and **Windows** (.nsis).
 
 ## 🚀 Installation
 
 ### Windows
 
-1. Go to [Releases](https://github.com/xxomega2077xx/softdo/releases/latest).
-2. Download `SoftDo-Setup-1.5.1.exe`.
-3. Run to install. It will auto-launch.
+1. Download `SoftDo-Setup-1.5.0.exe` from [Releases](https://github.com/xxomega2077xx/softdo/releases).
+2. Run to install. It will auto-launch.
 
 ### Linux (Ubuntu/Debian)
 
-1. Download `SoftDo_1.5.1_amd64.deb`.
-2. Install via terminal:
-   ```bash
-   sudo dpkg -i SoftDo_1.5.1_amd64.deb
-   ```
-3. Or use the `.AppImage` version for a portable experience (chmod +x and run).
-
----
-
-## 🛠️ Development
-
-Want to contribute or build it yourself?
+**Option 1: AppImage (Universal)**
 
 ```bash
-# 1. Clone
-git clone https://github.com/xxomega2077xx/softdo.git
-cd softdo
-
-# 2. Install (Node 20+ required)
-npm install
-
-# 3. Dev Mode
-npm run electron:dev
-
-# 4. Build
-# For Windows
-npm run electron:build -- --win
-
-# For Linux
-npm run electron:build -- --linux
+chmod +x SoftDo-1.5.0-Linux.AppImage
+./SoftDo-1.5.0-Linux.AppImage
 ```
 
-## 📝 Keyboard Shortcuts
+**Option 2: DEB Package**
 
-| Key            | Action                                     |
-| :------------- | :----------------------------------------- |
-| `Enter`        | Add task / Save edit                       |
-| `Esc`          | Cancel edit / Close window (if configured) |
-| `Double Click` | Edit parsing text (Time)                   |
+```bash
+sudo dpkg -i softdo_1.5.0_amd64.deb
+```
 
----
+## 🛠️ Tech Stack
 
-<div align="center">
-Made with 💜 by Evan
-</div>
+- **Core**: [Electron](https://www.electronjs.org/) + [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Motion**: [Framer Motion](https://www.framer.com/motion/)
+- **Build**: [Vite](https://vitejs.dev/) + [Electron Builder](https://www.electron.build/)
+
+## 📜 License
+
+MIT License © 2026 SoftDo Team.
+Designed with ❤️ for clarity and calm.
