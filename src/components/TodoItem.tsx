@@ -1,75 +1,19 @@
-import { Check, Trash2, Clock, Pencil } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import clsx from 'clsx'
-import type { Todo } from '../App'
+import { VARIANTS_ITEM } from '../constants/animations'
 
-interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRename: (id: string, text: string) => void;
-}
-
-interface TimeInfo {
-  text: string;
-  urgent: boolean;
-  overdue: boolean;
-  secondsLeft?: number;
-}
-
-function formatTimeRemaining(dueTime: Date): TimeInfo {
-  const now = new Date()
-  const diff = dueTime.getTime() - now.getTime()
-  
-  if (diff < 0) {
-    const mins = Math.abs(Math.floor(diff / 60000))
-    if (mins < 60) return { text: `${mins}m overdue`, urgent: true, overdue: true }
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return { text: `${hours}h overdue`, urgent: true, overdue: true }
-    return { text: `${Math.floor(hours / 24)}d overdue`, urgent: true, overdue: true }
-  }
-  
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, secondsLeft: seconds }
-  
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return { text: `${mins}m left`, urgent: mins < 30, overdue: false }
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return { text: `${hours}h ${mins % 60}m`, urgent: hours < 2, overdue: false }
-  const days = Math.floor(hours / 24)
-  return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
-}
+// ... (existing imports)
 
 export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoItemProps) {
-  const [, setTick] = useState(0)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editText, setEditText] = useState(todo.text)
+  // ... (existing hooks)
   
-  // Update every second if urgent
-  useEffect(() => {
-    if (!todo.dueTime) return
-    const now = new Date()
-    const diff = new Date(todo.dueTime).getTime() - now.getTime()
-    // If less than 1 min, tick every second
-    if (diff > 0 && diff < 60000) {
-        const interval = setInterval(() => setTick(t => t + 1), 1000)
-        return () => clearInterval(interval)
-    }
-  }, [todo.dueTime])
-
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-      transition={{ 
-        duration: 0.3,
-        ease: [0.25, 0.1, 0.25, 1.0], // Cubic bezier for silky smooth slide
-      }}
+      variants={VARIANTS_ITEM}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
       className={clsx(
         'group flex items-center gap-3 p-3.5 bg-white/60 hover:bg-white/80 backdrop-blur-sm border border-white/50 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden',
         todo.completed && 'opacity-60 bg-white/40'
@@ -77,14 +21,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
     >
       {/* Checkbox */}
       <motion.button
-        layout={false} // Don't animate layout for inner button
-        whileTap={{ scale: 0.75 }}
+        layout={false}
+        whileTap={{ scale: 0.85 }} // Subtler tap effect
         onClick={() => onToggle(todo.id)}
         className="relative cursor-pointer flex-shrink-0"
       >
         <motion.div
-          animate={todo.completed ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-          transition={{ duration: 0.35 }}
+          layout
           className={clsx(
             "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border-2",
             todo.completed 
@@ -109,9 +52,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
           {todo.completed && (
             <motion.div
               initial={{ scale: 0.5, opacity: 0.6 }}
-              animate={{ scale: 2.5, opacity: 0 }}
+              animate={{ scale: 2.0, opacity: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
               className="absolute inset-0 rounded-full bg-violet-400 pointer-events-none"
             />
           )}

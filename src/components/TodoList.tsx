@@ -1,6 +1,7 @@
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Todo } from '../App'
 import TodoItem from './TodoItem'
+import { VARIANTS_CONTAINER } from '../constants/animations'
 
 interface TodoListProps {
   todos: Todo[];
@@ -11,8 +12,14 @@ interface TodoListProps {
 
 export default function TodoList({ todos, onToggle, onDelete, onRename }: TodoListProps) {
   return (
-    <div className="space-y-2">
-      <AnimatePresence initial={false} mode='popLayout'>
+    <motion.div 
+      className="space-y-2"
+      variants={VARIANTS_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <AnimatePresence mode='popLayout'>
         {todos.map((todo) => (
           <TodoItem 
             key={todo.id} 
@@ -23,6 +30,6 @@ export default function TodoList({ todos, onToggle, onDelete, onRename }: TodoLi
           />
         ))}
       </AnimatePresence>
-    </div>
+    </motion.div>
   )
 }
