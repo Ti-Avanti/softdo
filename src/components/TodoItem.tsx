@@ -1,9 +1,48 @@
+import { Check, Trash2, Clock, Pencil } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import clsx from 'clsx'
+import type { Todo } from '../App'
 import { VARIANTS_ITEM } from '../constants/animations'
 
-// ... (existing imports)
+interface TodoItemProps {
+  todo: Todo;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onRename: (id: string, text: string) => void;
+}
+
+interface TimeInfo {
+  text: string;
+  urgent: boolean;
+  overdue: boolean;
+  secondsLeft?: number;
+}
+
+function formatTimeRemaining(dueTime: Date): TimeInfo {
+  const now = new Date()
+  const diff = dueTime.getTime() - now.getTime()
+  
+  if (diff < 0) {
+    const mins = Math.abs(Math.floor(diff / 60000))
+    if (mins < 60) return { text: `${mins}m overdue`, urgent: true, overdue: true }
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return { text: `${hours}h overdue`, urgent: true, overdue: true }
+    return { text: `${Math.floor(hours / 24)}d overdue`, urgent: true, overdue: true }
+  }
+  
+  const seconds = Math.floor(diff / 1000)
+  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, secondsLeft: seconds }
+  
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return { text: `${mins}m left`, urgent: mins < 30, overdue: false }
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return { text: `${hours}h ${mins % 60}m`, urgent: hours < 2, overdue: false }
+  const days = Math.floor(hours / 24)
+  return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
+}
 
 export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoItemProps) {
-  // ... (existing hooks)
   
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   

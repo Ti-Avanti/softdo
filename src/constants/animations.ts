@@ -1,13 +1,13 @@
-import { Variants, Transition } from "framer-motion";
+import type { Variants, Transition } from "framer-motion";
 
 // 🌊 SILKY FLOW
 // The core curve that defines the "feel" of SoftDo v1.5.0
 // Linear-ish start for quick response, smooth deceleration for premium finish.
-export const EASE_SILKY = [0.25, 0.1, 0.25, 1.0];
+export const EASE_SILKY: [number, number, number, number] = [0.25, 0.1, 0.25, 1.0];
 
 // ⚡ SNAP
 // For quick toggles and micro-interactions
-export const EASE_SNAP = [0.22, 1, 0.36, 1];
+export const EASE_SNAP: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 // 🎞️ Transitions
 export const TRANSITION_LAYOUT: Transition = {
