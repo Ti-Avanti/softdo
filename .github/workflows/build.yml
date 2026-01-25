@@ -1,133 +1,67 @@
-name: Build SoftDo
+name: Build and Release
 
 on:
   push:
-    branches: [main, master]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build app
-        run: npm run build
-
-      - name: Build Windows installer
-        run: npx electron-builder --win --publish never
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SoftDo-Windows
-          path: |
-            dist-electron/*.exe
-            dist-electron/*.exe.blockmap
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build app
-        run: npm run build
-
-      - name: Build macOS installer
-        run: npx electron-builder --mac --publish never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SoftDo-macOS
-          path: |
-            dist-electron/*.dmg
-            dist-electron/*.zip
-
-  create-release:
-    needs: [build-windows, build-macos]
+  release-linux:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          name: SoftDo-Windows
-          path: release-files
+          node-version: 18
+      - run: npm install
+      - run: npm run build
+      - name: Build Linux (AppImage & Deb)
+        # Publishing directly to GitHub Release with 'release' type forced
+        run: npm run electron:build -- --linux --publish always -c.publish.releaseType=release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
+      - name: Update Release Notes
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: SoftDo-macOS
-          path: release-files
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List files
-        run: ls -la release-files/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+  release-win:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          tag_name: v${{ steps.get_version.outputs.VERSION }}
-          name: SoftDo v${{ steps.get_version.outputs.VERSION }}
-          body: |
-            ## ✨ SoftDo v${{ steps.get_version.outputs.VERSION }}
+          node-version: 18
+      - run: npm install
+      - run: npm run build
+      - name: Build Windows
+        run: npm run electron:build -- --win --publish always -c.publish.releaseType=release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            A beautiful desktop todo widget with glassmorphism design.
-            精美的桌面待办小组件，采用玻璃拟态设计。
-
-            ### 🆕 What's New | 新功能
-
-            - ↔️ **Window Resizing** - Drag bottom-right corner to resize freely
-            - 💧 **Opacity Control** - Droplet icon to adjust transparency (20%-100%)
-            - 🔧 **Shadow Fix** - Clean transparent window on all backgrounds
-            - 🖥️ **System Tray** - Minimize to tray, quick access menu
-            - 🔄 **Auto Update** - Checks for new versions automatically
-            - 📌 **Desktop Shortcut** - Auto-created during installation
-
-            ### 📥 Downloads | 下载
-
-            | Platform | File |
-            |----------|------|
-            | Windows | `SoftDo-${{ steps.get_version.outputs.VERSION }}-Windows.exe` |
-            | macOS | `SoftDo-${{ steps.get_version.outputs.VERSION }}-macOS.dmg` |
-
-            ### ✨ Features | 功能
-            - 🎨 Premium glassmorphism design | 高级玻璃拟态设计
-            - ⏰ Smart due times with countdown | 智能截止时间与倒计时
-            - 💾 Auto-save to local storage | 本地自动保存
-            - 🖱️ Draggable desktop widget | 可拖动桌面小组件
-            - 📌 Always-on-top option | 窗口置顶选项
-            - 🔔 System tray with tooltip | 系统托盘与提示
-          files: release-files/*
-          draft: false
-          prerelease: false
+  release-mac:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm install
+      - run: npm run build
+      - name: Build macOS
+        # Note: Code signing might fail without certs, but we include it for best effort if keys are present in repo secrets
+        # Otherwise it will build unsigned
+        run: npm run electron:build -- --mac --publish always -c.publish.releaseType=release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
