@@ -20,7 +20,7 @@ jobs:
       - run: npm run build
       - name: Build Linux (AppImage & Deb)
         # Publishing directly to GitHub Release with 'release' type forced
-        run: npm run electron:build -- --linux --publish always -c.publish.releaseType=release
+        run: npm run electron:build -- --linux --publish always --config.publish.releaseType=release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -44,7 +44,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - name: Build Windows
-        run: npm run electron:build -- --win --publish always -c.publish.releaseType=release
+        run: npm run electron:build -- --win --publish always --config.publish.releaseType=release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -62,6 +62,6 @@ jobs:
       - name: Build macOS
         # Note: Code signing might fail without certs, but we include it for best effort if keys are present in repo secrets
         # Otherwise it will build unsigned
-        run: npm run electron:build -- --mac --publish always -c.publish.releaseType=release
+        run: npm run electron:build -- --mac --publish always --config.publish.releaseType=release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
