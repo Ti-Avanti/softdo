@@ -70,5 +70,15 @@ sudo dpkg -i softdo_1.5.0_amd64.deb
 
 ## 📜 License
 
-MIT License © 2026 SoftDo Team.
+MIT License © 2026 SoftDo.
 Designed with ❤️ for clarity and calm.
+
+## 🌟 Star History
+
+<a href="https://star-history.com/#xxomega2077xx/softdo&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date" />
+ </picture>
+</a>
