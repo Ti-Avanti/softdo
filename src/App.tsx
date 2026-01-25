@@ -489,15 +489,14 @@ function App() {
                 </motion.p>
               </div>
               
-              {/* Clear All Button - shows when there are any todos */}
+              {/* Clear All Button */}
               <div className="h-6">
                  <AnimatePresence>
                     {todos.length > 0 && (
                     <motion.button
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        transition={{ duration: 0.3 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={clearAll}
@@ -522,24 +521,24 @@ function App() {
                     key="empty"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                    transition={{ duration: 0.3 }}
                     className="text-center py-12"
                   >
                     <motion.div 
                       layout
-                      initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
-                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                      transition={{ delay: 0.15, duration: 0.5, type: 'spring', bounce: 0.4 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
                       className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center border border-violet-100/30"
                     >
                       <CircleCheck size={24} className="text-violet-400" />
                     </motion.div>
                     <motion.p 
                       layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
                       className="text-neu-muted/60 text-sm font-medium"
                     >
                       All clear! Add a task above.
