@@ -515,20 +515,20 @@ function App() {
             <div className="space-y-4">
               <TodoInput onAdd={addTodo} />
               
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout" initial={false}>
                 {todos.length === 0 ? (
                   <motion.div
                     key="empty"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
-                    transition={{ duration: 0.3 }}
-                    className="text-center py-12"
+                    initial={{ opacity: 0, scale: 0.9, height: 0 }}
+                    animate={{ opacity: 1, scale: 1, height: 'auto' }}
+                    exit={{ opacity: 0, scale: 0.9, height: 0 }}
+                    transition={{ duration: 0.3, type: "spring", bounce: 0 }}
+                    className="text-center py-12 overflow-hidden"
                   >
                     <motion.div 
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1, duration: 0.3 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
                       className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center border border-violet-100/30"
                     >
                       <CircleCheck size={24} className="text-violet-400" />
@@ -536,7 +536,7 @@ function App() {
                     <motion.p 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.15 }}
                       className="text-neu-muted/60 text-sm font-medium"
                     >
                       All clear! Add a task above.
@@ -545,10 +545,10 @@ function App() {
                 ) : (
                   <motion.div
                     key="list"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                   >
                     <TodoList 
                       todos={todos} 
