@@ -1,19 +1,31 @@
-# 🧪 SoftDo v1.5.1 (Private Beta)
+# ✨ SoftDo v1.5.1: The Deep Glass Update
 
-> **Draft Release**: For internal testing only.
+> **"Clarity in every pixel."**
 
-This build introduces the new **"Deep Glass"** aesthetic and skeuomorphic interactions.
+Building on the Silky Flow engine, v1.5.1 brings a massive upgrade to visual fidelity. We've introduced "Deep Glass" aesthetics and refined dark mode to be easier on the eyes.
+
+---
 
 ## 🎨 Visual Upgrades
 
-- **Micro-Skeuomorphism**: Checkboxes now have a satisfying "inset" feel when pressed, mimicking high-end iOS toggles.
-- **Grain Texture**: Added a subtle film grain noise to the background for a more tangible, "frosted" texture.
-- **Dark Mode Polish**: Reduced harsh contrasts; borders are now translucent and cleaner.
+### 🌫️ Deep Glass Texture
 
-## 📥 Testing
+We've added a subtle film grain noise overlay to the entire application. This mimics the physics of real frosted glass, giving the window a tangible, premium texture that standard CSS blur cannot achieve.
 
-Please verify:
+### 🕹️ Micro-Skeuomorphism
 
-1.  Does the checkbox click feel "snappier"?
-2.  Is the background noise texture visible but not distracting?
-3.  Do shadows look natural in Dark Mode?
+Buttons now have weight.
+
+- **Inset Shadows**: Toggles and checkboxes press "into" the surface when clicked (reminiscent of iOS 17 control center).
+- **Spring Physics**: Checkbox animations are now driven by a stiffer spring for a snappier, more mechanical feel.
+
+### 👁️ Smart Contrast (Dark Mode)
+
+- **Adaptive Text**: Headers now detect dark backgrounds and apply a "Light + Shadow" effect to ensure perfect readability on any wallpaper.
+- **Refined Palette**: Dark mode logic has been updated to use `#1E1E2E` (Blue-Grey) instead of pure black for a softer look.
+
+---
+
+## 📥 Downloads
+
+Pick the version for your OS below.
