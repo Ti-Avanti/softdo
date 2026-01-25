@@ -1,8 +1,9 @@
 {
   "name": "softdo",
-  "private": true,
-  "version": "1.5.0",
-  "author": "Evan",
+  "author": {
+    "name": "xxomega2077xx",
+    "email": "xxomega2077xx@gmail.com"
+  },
   "description": "A beautiful desktop todo widget with glassmorphism design, smart due times, and smooth animations",
   "type": "module",
   "main": "electron/main.js",
