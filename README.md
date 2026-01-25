@@ -1,4 +1,4 @@
-# <div align="center"><img src="resources/icon.png" width="128" height="128" alt="SoftDo Logo"></div>
+# <div align="center"><img src="build/icon.png" width="128" height="128" alt="SoftDo Logo"></div>
 
 <div align="center">
 
