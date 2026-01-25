@@ -176,37 +176,37 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
 
   return (
     <div className="space-y-3">
-      <form onSubmit={handleSubmit} className="flex gap-2.5">
+      <form onSubmit={handleSubmit} className="flex gap-3">
         <div className="flex-1 flex gap-2">
           <input
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="What needs to be done?"
-            className="w-full bg-white/70 backdrop-blur-sm rounded-2xl px-4 py-3 outline-none text-neu-text placeholder-neu-muted/35 border border-white/60 transition-all duration-200 focus:bg-white/90 focus:border-violet-200 text-sm font-medium"
+            className="w-full bg-white/70 backdrop-blur-sm rounded-[18px] px-5 py-3 outline-none text-neu-text placeholder-neu-muted/35 border border-white/60 transition-all duration-200 focus:bg-white/90 focus:border-violet-200 text-sm font-medium shadow-sm"
           />
           
           <button
             type="button"
             onClick={toggleDuePicker}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors duration-200 cursor-pointer border flex-shrink-0 ${
+            className={`w-[46px] h-[46px] rounded-[18px] flex items-center justify-center transition-all duration-200 cursor-pointer border flex-shrink-0 shadow-sm ${
               hasDue
-                ? 'bg-violet-500 border-violet-500 text-white'
+                ? 'bg-violet-500 border-violet-500 text-white shadow-violet-500/20'
                 : showDuePicker
                 ? 'bg-violet-100 border-violet-200 text-violet-600'
-                : 'bg-white/70 border-white/60 text-neu-muted/40 hover:text-violet-500 hover:border-violet-200'
+                : 'bg-white/70 border-white/60 text-neu-muted/40 hover:text-violet-500 hover:border-violet-200 hover:bg-white/90'
             }`}
           >
-            <Clock size={16} />
+            <Clock size={18} />
           </button>
         </div>
         
         <button
           type="submit"
           disabled={!text.trim()}
-          className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl w-11 h-11 flex items-center justify-center text-white shadow-lg shadow-violet-500/25 disabled:opacity-30 disabled:shadow-none transition-opacity duration-200 cursor-pointer flex-shrink-0"
+          className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-[18px] w-[46px] h-[46px] flex items-center justify-center text-white shadow-lg shadow-violet-500/25 disabled:opacity-30 disabled:shadow-none transition-all duration-200 cursor-pointer flex-shrink-0 hover:scale-[1.02] active:scale-[0.98]"
         >
-          <Plus size={18} strokeWidth={2.5} />
+          <Plus size={20} strokeWidth={2.5} />
         </button>
       </form>
       
@@ -276,10 +276,10 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
             </div>
             
             {/* Time Input */}
-            <div className="flex items-center justify-between pt-3 border-t border-violet-50">
-              <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-neu-muted/50 uppercase">Time</span>
-                  <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between pt-4 border-t border-violet-50">
+              <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-neu-muted/40 uppercase tracking-wider">Time</span>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="text"
                       inputMode="numeric"
@@ -287,7 +287,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                       value={hour}
                       onChange={(e) => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
                       onBlur={() => setHour(normalizeHour(hour))}
-                      className="w-8 h-7 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300"
+                      className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
                     />
                     <span className="text-violet-300 font-bold">:</span>
                     <input
@@ -297,21 +297,21 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                       value={minute}
                       onChange={(e) => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
                       onBlur={() => setMinute(normalizeMinute(minute))}
-                      className="w-8 h-7 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300"
+                      className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
                     />
                   </div>
               </div>
               
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {['09', '12', '18'].map((h) => (
                   <button
                     key={h}
                     type="button"
                     onClick={() => { setHour(h); setMinute('00') }}
-                    className={`px-2 py-1 rounded-md text-[9px] font-semibold transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1.5 rounded-[10px] text-[10px] font-semibold transition-all cursor-pointer ${
                       hour === h && minute === '00'
-                        ? 'bg-violet-500 text-white'
-                        : 'bg-violet-50 text-violet-500 hover:bg-violet-100'
+                        ? 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
+                        : 'bg-violet-50/50 text-violet-500 hover:bg-violet-100'
                     }`}
                   >
                     {h}:00

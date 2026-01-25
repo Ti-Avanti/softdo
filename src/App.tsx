@@ -22,7 +22,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.6'
+const VERSION = 'v1.2.7'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -518,11 +518,12 @@ function App() {
               <AnimatePresence mode="wait">
                 {todos.length === 0 ? (
                   <motion.div
+                    layout
                     key="empty"
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
                     className="text-center py-12"
                   >
                     <motion.div 
