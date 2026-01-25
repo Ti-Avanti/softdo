@@ -88,6 +88,10 @@
       "target": ["AppImage", "deb"],
       "icon": "build/icon.png",
       "artifactName": "SoftDo-${version}-Linux.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
     }
   }
 }
