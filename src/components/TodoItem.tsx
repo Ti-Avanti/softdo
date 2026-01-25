@@ -43,8 +43,21 @@ function formatTimeRemaining(dueTime: Date): TimeInfo {
 }
 
 export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoItemProps) {
+  const [, setTick] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editText, setEditText] = useState(todo.text)
   
-  const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
+  // Update every second if urgent
+  useEffect(() => {
+    if (!todo.dueTime) return
+    const now = new Date()
+    const diff = new Date(todo.dueTime).getTime() - now.getTime()
+    // If less than 1 min, tick every second
+    if (diff > 0 && diff < 60000) {
+        const interval = setInterval(() => setTick(t => t + 1), 1000)
+        return () => clearInterval(interval)
+    }
+  }, [todo.dueTime])
   
   return (
     <motion.div
