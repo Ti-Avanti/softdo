@@ -1,35 +1,37 @@
 # SoftDo
 
-A beautiful, glassmorphism-inspired desktop todo widget built with Electron, React, and TailwindCSS.
+A beautiful, glassmorphism-inspired desktop todo widget built with Electron and React.
 
-![SoftDo Screenshot](https://raw.githubusercontent.com/xxomega2077xx/softdo/main/screenshot.png)
+## ✨ Features
 
-## Features
+- **Glassmorphism Design**: Frosted glass aesthetics that blend seamlessly with your wallpaper.
+- **Smart Time Parsing**: Natural language input (e.g., "Meeting tomorrow at 9am").
+- **Smooth Animations**: Premium, spring-based animations for a fluid experience.
+- **Compact Mode**: Resizable window that automatically adjusts layout.
+- **Always on Top**: Optional pinning to keep your tasks visible.
 
-- **Glassmorphism UI**: Beautiful frosted glass effect with dynamic backgrounds.
-- **Smart Time Parsing**: Natural language date selection (Today, Tomorrow, In 3 days).
-- **Minimal Mode**: Resizable window that adapts gracefully.
-- **Animations**: Buttery smooth transitions powered by Framer Motion.
-- **Always on Top**: Pin the widget to keep your tasks in focus.
-- **Auto Updates**: Seamless updates from GitHub Releases.
+## 🚀 Installation
 
-## Installation
+1.  Download the latest installer from the [Releases](https://github.com/xxomega2077xx/softdo/releases) page.
+2.  Run the installer (`SoftDo Setup <version>.exe`).
+3.  The app will launch automatically.
 
-Download the latest release from the [Releases Page](https://github.com/xxomega2077xx/softdo/releases).
-
-## Development
+## 🛠️ Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/xxomega2077xx/softdo.git
+
 # Install dependencies
 npm install
 
-# Run dev server
+# Start development server
 npm run dev
 
 # Build for production
 npm run build
 ```
 
-## License
+## 📝 License
 
-MIT
+MIT License - feel free to use this code for your own projects.

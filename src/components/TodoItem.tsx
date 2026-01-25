@@ -61,7 +61,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
-  return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 15, scale: 0.98 }}
