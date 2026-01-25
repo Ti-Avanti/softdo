@@ -58,6 +58,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
         return () => clearInterval(interval)
     }
   }, [todo.dueTime])
+
+  const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
     <motion.div
