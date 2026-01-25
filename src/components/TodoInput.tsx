@@ -268,39 +268,41 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                 </button>
               </div>
               
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-1">
+              {/* Calendar Grid - Fixed Columns, Center Items */}
+              <div className="grid grid-cols-7 gap-y-1 justify-items-center">
                 {headers}
                 {days}
               </div>
             </div>
             
             {/* Time Input */}
-            <div className="flex items-center gap-3 pt-3 border-t border-violet-50">
-              <span className="text-[10px] font-semibold text-neu-muted/50 uppercase">Time</span>
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={2}
-                  value={hour}
-                  onChange={(e) => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                  onBlur={() => setHour(normalizeHour(hour))}
-                  className="w-10 h-8 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-sm font-bold text-violet-600 outline-none focus:border-violet-300"
-                />
-                <span className="text-violet-300 font-bold">:</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={2}
-                  value={minute}
-                  onChange={(e) => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                  onBlur={() => setMinute(normalizeMinute(minute))}
-                  className="w-10 h-8 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-sm font-bold text-violet-600 outline-none focus:border-violet-300"
-                />
+            <div className="flex items-center justify-between pt-3 border-t border-violet-50">
+              <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-neu-muted/50 uppercase">Time</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={2}
+                      value={hour}
+                      onChange={(e) => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      onBlur={() => setHour(normalizeHour(hour))}
+                      className="w-8 h-7 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300"
+                    />
+                    <span className="text-violet-300 font-bold">:</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={2}
+                      value={minute}
+                      onChange={(e) => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      onBlur={() => setMinute(normalizeMinute(minute))}
+                      className="w-8 h-7 rounded-lg bg-violet-50 border border-violet-100/50 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300"
+                    />
+                  </div>
               </div>
               
-              <div className="flex gap-1 ml-auto">
+              <div className="flex gap-1">
                 {['09', '12', '18'].map((h) => (
                   <button
                     key={h}

@@ -22,7 +22,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.5'
+const VERSION = 'v1.2.6'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -468,7 +468,7 @@ function App() {
         </AnimatePresence>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 pb-5 relative z-30">
+        <div className="flex-1 overflow-y-auto px-5 pb-5 relative z-30 [scrollbar-gutter:stable]">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -490,22 +490,25 @@ function App() {
               </div>
               
               {/* Clear All Button - shows when there are any todos */}
-              <AnimatePresence>
-                {todos.length > 0 && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8, x: 10 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, x: 10 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={clearAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-all duration-300 cursor-pointer"
-                  >
-                    <Trash2 size={12} />
-                    <span>Clear All</span>
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              <div className="h-6">
+                 <AnimatePresence>
+                    {todos.length > 0 && (
+                    <motion.button
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ duration: 0.3 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={clearAll}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer"
+                    >
+                        <Trash2 size={12} />
+                        <span>Clear All</span>
+                    </motion.button>
+                    )}
+                </AnimatePresence>
+              </div>
             </header>
             
             {/* Input & List */}
@@ -516,10 +519,10 @@ function App() {
                 {todos.length === 0 ? (
                   <motion.div
                     key="empty"
-                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     className="text-center py-12"
                   >
                     <motion.div 
