@@ -61,16 +61,26 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
   const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime)) : null
   
   return (
+  return (
     <motion.div
-      layout="position"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/50 hover:bg-white/80 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300"
+      layout
+      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ 
+        layout: { duration: 0.3, ease: "easeOut" },
+        opacity: { duration: 0.25 },
+        y: { type: "spring", stiffness: 400, damping: 25, mass: 0.8 },
+        scale: { duration: 0.25 }
+      }}
+      className={clsx(
+        'group flex items-center gap-3 p-3.5 bg-white/60 hover:bg-white/80 backdrop-blur-sm border border-white/50 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden',
+        todo.completed && 'opacity-60 bg-white/40' // Ensure BG logic is stable
+      )}
     >
       {/* Checkbox */}
       <motion.button
+        layout={false} // Don't animate layout for inner button
         whileTap={{ scale: 0.75 }}
         onClick={() => onToggle(todo.id)}
         className="relative cursor-pointer flex-shrink-0"
