@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build SoftDo
 
 on:
   push:
@@ -7,61 +7,102 @@ on:
   workflow_dispatch:
 
 jobs:
-  release-linux:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - name: Build Windows
+        run: npx electron-builder --win --publish never
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoftDo-Windows
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.exe.blockmap
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - name: Build macOS
+        run: npx electron-builder --mac --publish never
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoftDo-macOS
+          path: |
+            dist-electron/*.dmg
+            dist-electron/*.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - name: Build Linux
+        run: npx electron-builder --linux --publish never
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoftDo-Linux
+          path: |
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run build
-      - name: Build Linux (AppImage & Deb)
-        # Publishing directly to GitHub Release with 'release' type forced
-        run: npm run electron:build -- --linux --publish always --config.publish.releaseType=release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Update Release Notes
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
         with:
+          name: SoftDo-Windows
+          path: release-files
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SoftDo-macOS
+          path: release-files
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SoftDo-Linux
+          path: release-files
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: SoftDo v${{ steps.get_version.outputs.VERSION }}
           body_path: CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  release-win:
-    runs-on: windows-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run build
-      - name: Build Windows
-        run: npm run electron:build -- --win --publish always --config.publish.releaseType=release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  release-mac:
-    runs-on: macos-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run build
-      - name: Build macOS
-        # Note: Code signing might fail without certs, but we include it for best effort if keys are present in repo secrets
-        # Otherwise it will build unsigned
-        run: npm run electron:build -- --mac --publish always --config.publish.releaseType=release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: release-files/*
+          draft: false
+          prerelease: false
