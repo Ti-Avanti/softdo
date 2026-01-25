@@ -512,10 +512,10 @@ function App() {
             </header>
             
             {/* Input & List */}
-            <div className="space-y-4">
+            <motion.div layout className="space-y-4">
               <TodoInput onAdd={addTodo} />
               
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="popLayout">
                 {todos.length === 0 ? (
                   <motion.div
                     layout
@@ -527,6 +527,7 @@ function App() {
                     className="text-center py-12"
                   >
                     <motion.div 
+                      layout
                       initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
                       animate={{ scale: 1, opacity: 1, rotate: 0 }}
                       transition={{ delay: 0.15, duration: 0.5, type: 'spring', bounce: 0.4 }}
@@ -535,6 +536,7 @@ function App() {
                       <CircleCheck size={24} className="text-violet-400" />
                     </motion.div>
                     <motion.p 
+                      layout
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
@@ -545,6 +547,7 @@ function App() {
                   </motion.div>
                 ) : (
                   <motion.div
+                    layout
                     key="list"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -560,7 +563,7 @@ function App() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
 

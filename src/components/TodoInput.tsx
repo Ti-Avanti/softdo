@@ -302,13 +302,13 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                   </div>
               </div>
               
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 {['09', '12', '18'].map((h) => (
                   <button
                     key={h}
                     type="button"
                     onClick={() => { setHour(h); setMinute('00') }}
-                    className={`px-2.5 py-1.5 rounded-[10px] text-[10px] font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       hour === h && minute === '00'
                         ? 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
                         : 'bg-violet-50/50 text-violet-500 hover:bg-violet-100'
