@@ -70,3 +70,20 @@ jobs:
         run: npm run electron:build -- --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build
+      - name: Build Linux
+        # Helper to ensure we only build linux artifacts on linux runner to avoid 'wine' requirement for win32
+        run: npm run electron:build -- --linux --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
