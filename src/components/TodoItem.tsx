@@ -63,18 +63,16 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       transition={{ 
-        layout: { duration: 0.3, ease: "easeOut" },
-        opacity: { duration: 0.25 },
-        y: { type: "spring", stiffness: 400, damping: 25, mass: 0.8 },
-        scale: { duration: 0.25 }
+        duration: 0.3,
+        ease: [0.25, 0.1, 0.25, 1.0], // Cubic bezier for silky smooth slide
       }}
       className={clsx(
         'group flex items-center gap-3 p-3.5 bg-white/60 hover:bg-white/80 backdrop-blur-sm border border-white/50 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden',
-        todo.completed && 'opacity-60 bg-white/40' // Ensure BG logic is stable
+        todo.completed && 'opacity-60 bg-white/40'
       )}
     >
       {/* Checkbox */}

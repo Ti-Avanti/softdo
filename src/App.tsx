@@ -22,7 +22,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.2.7'
+const VERSION = 'v1.2.8'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -545,10 +545,11 @@ function App() {
                 ) : (
                   <motion.div
                     key="list"
+                    layout
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                   >
                     <TodoList 
                       todos={todos} 
