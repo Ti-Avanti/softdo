@@ -104,5 +104,5 @@ jobs:
           name: SoftDo v${{ steps.get_version.outputs.VERSION }}
           body_path: RELEASE_NOTES.md
           files: release-files/*
-          draft: false
-          prerelease: false
+          draft: true
+          prerelease: true

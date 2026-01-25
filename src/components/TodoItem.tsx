@@ -76,17 +76,19 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
       {/* Checkbox */}
       <motion.button
         layout={false}
-        whileTap={{ scale: 0.85 }} // Subtler tap effect
+        whileTap={{ scale: 0.95 }}
         onClick={() => onToggle(todo.id)}
-        className="relative cursor-pointer flex-shrink-0"
+        className="relative cursor-pointer flex-shrink-0 group/checkbox"
       >
         <motion.div
           layout
           className={clsx(
-            "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border-2",
+            "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border",
+            // Improved Skeuomorphism: 
+            // Inset shadow when inactive (subtle depth), Pop out when checked or Active state logic
             todo.completed 
-              ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30' 
-              : 'border-neu-muted/20 bg-white text-transparent hover:border-violet-300 hover:shadow-md'
+              ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_2px_8px_rgba(139,92,246,0.4)]' 
+              : 'border-neu-muted/20 bg-white/50 backdrop-blur-md shadow-inner hover:shadow-neu-btn active:shadow-neu-pressed'
           )}
         >
           <motion.div
@@ -95,20 +97,20 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
               scale: todo.completed ? 1 : 0, 
               opacity: todo.completed ? 1 : 0
             }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }} // Snappier check
           >
-            <Check size={12} strokeWidth={3} />
+            <Check size={12} strokeWidth={3} className="drop-shadow-sm" />
           </motion.div>
         </motion.div>
         
-        {/* Ripple */}
+        {/* Ripple - Slightly refined */}
         <AnimatePresence>
           {todo.completed && (
             <motion.div
-              initial={{ scale: 0.5, opacity: 0.6 }}
-              animate={{ scale: 2.0, opacity: 0 }}
+              initial={{ scale: 0.5, opacity: 0.5 }}
+              animate={{ scale: 1.8, opacity: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className="absolute inset-0 rounded-full bg-violet-400 pointer-events-none"
             />
           )}
