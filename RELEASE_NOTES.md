@@ -1,28 +1,35 @@
-# ✨ SoftDo v1.5.1: The Deep Glass Update
+# 🚀 SoftDo v1.5.2: Speed & Focus Update
 
-> **"Clarity in every pixel."**
+> **"Flow like water, organize like a pro."**
 
-Building on the Silky Flow engine, v1.5.1 brings a massive upgrade to visual fidelity. We've introduced "Deep Glass" aesthetics and refined dark mode to be easier on the eyes.
+This update focuses on user experience, speed, and long-requested features like sorting and auto-start.
 
 ---
 
-## 🎨 Visual Upgrades
+## ✨ New Features
 
-### 🌫️ Deep Glass Texture
+### 🔄 Drag & Drop Sorting
 
-We've added a subtle film grain noise overlay to the entire application. This mimics the physics of real frosted glass, giving the window a tangible, premium texture that standard CSS blur cannot achieve.
+You can now reorder your tasks! Just grab the handle next to any item and drag it to priority. The order is saved automatically.
 
-### 🕹️ Micro-Skeuomorphism
+### ⚡ Auto-Start
 
-Buttons now have weight.
+SoftDo can now launch automatically when you start your computer.
 
-- **Inset Shadows**: Toggles and checkboxes press "into" the surface when clicked (reminiscent of iOS 17 control center).
-- **Spring Physics**: Checkbox animations are now driven by a stiffer spring for a snappier, more mechanical feel.
+- **Toggle**: Enable/Disable this in the Opacity menu (water drop icon).
 
-### 👁️ Smart Contrast (Dark Mode)
+### 🎯 Smart Time Input
 
-- **Adaptive Text**: Headers now detect dark backgrounds and apply a "Light + Shadow" effect to ensure perfect readability on any wallpaper.
-- **Refined Palette**: Dark mode logic has been updated to use `#1E1E2E` (Blue-Grey) instead of pure black for a softer look.
+Entering time is now faster than ever. When you type 2 digits for the hour, focus automatically jumps to the minute field.
+
+### 🌍 Localization (中文 support)
+
+Added full support for **Chinese (Simplified)**. Toggle between English and Chinese with the language button in the header.
+
+### 🎨 Visual Polish
+
+- **Darker Window Controls**: Close/Minimize/Pin buttons are now easier to see.
+- **Refined Glassmorphism**: Smoother blur effects and better contrast.
 
 ---
 
