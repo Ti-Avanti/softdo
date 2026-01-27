@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles, Languages } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles } from 'lucide-react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
@@ -377,11 +377,10 @@ function App() {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
               onClick={toggleLanguage}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/60 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/80 transition-all duration-300 cursor-pointer"
               title={t('Language')}
             >
-              <Languages size={13} />
-              <span className="text-[9px] font-bold ml-0.5">{i18n.language === 'en' ? 'En' : '中'}</span>
+              <span className="text-[10px] font-bold">{i18n.language === 'en' ? 'En' : '中'}</span>
             </motion.button>
 
             {/* Opacity Control */}
@@ -391,7 +390,7 @@ function App() {
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setShowOpacityControl(!showOpacityControl)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                  showOpacityControl ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/60'
+                  showOpacityControl ? 'bg-violet-100 text-violet-600' : 'hover:bg-black/5 text-neu-muted/80'
                 }`}
                 title={t('Opacity')}
               >
@@ -431,7 +430,7 @@ function App() {
                             onClick={toggleAutoStart}
                             className={`w-8 h-4 rounded-full transition-colors relative ${autoStart ? 'bg-violet-500' : 'bg-gray-200'}`}
                         >
-                            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all shadow-sm ${autoStart ? 'left-4.5' : 'left-0.5'}`} />
+                            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform shadow-sm ${autoStart ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
                         </button>
                     </div>
                   </motion.div>
@@ -444,7 +443,7 @@ function App() {
               whileTap={{ scale: 0.85 }}
               onClick={togglePin}
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                isPinned ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/60'
+                isPinned ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/80'
               }`}
             >
               <Pin size={13} fill={isPinned ? 'currentColor' : 'none'} />
@@ -454,7 +453,7 @@ function App() {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
               onClick={minimizeApp}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/60 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/80 transition-all duration-300 cursor-pointer"
             >
               <Minus size={13} />
             </motion.button>
@@ -463,7 +462,7 @@ function App() {
               whileHover={{ scale: 1.15, backgroundColor: 'rgba(255,107,107,0.1)' }}
               whileTap={{ scale: 0.85 }}
               onClick={closeApp}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:text-red-400 text-neu-muted/60 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:text-red-400 text-neu-muted/80 transition-all duration-300 cursor-pointer"
             >
               <X size={13} />
             </motion.button>
