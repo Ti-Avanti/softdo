@@ -1,7 +1,9 @@
-import { Check, Trash2, Clock, Pencil } from 'lucide-react'
+import { Check, Trash2, Clock, Pencil, GripVertical } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Todo } from '../App'
 import { VARIANTS_ITEM } from '../constants/animations'
 
@@ -46,6 +48,22 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
   const [, setTick] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  }
   
   // Update every second if urgent
   useEffect(() => {
@@ -63,6 +81,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
   
   return (
     <motion.div
+      ref={setNodeRef}
+      style={style}
       layout
       variants={VARIANTS_ITEM}
       initial="hidden"
@@ -73,6 +93,14 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename }: TodoIte
         todo.completed && 'opacity-60 bg-white/40'
       )}
     >
+      {/* Drag Handle */}
+      <div 
+        {...attributes} 
+        {...listeners} 
+        className="cursor-grab active:cursor-grabbing text-neu-muted/20 hover:text-violet-400 p-1 -ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <GripVertical size={14} />
+      </div>
       {/* Checkbox */}
       <motion.button
         layout={false}

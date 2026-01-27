@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles } from 'lucide-react'
+import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles, Languages } from 'lucide-react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { useTranslation } from 'react-i18next'
+import './i18n'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 
@@ -22,7 +27,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.5.1'
+const VERSION = 'v1.5.2'
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>(() => {
@@ -51,6 +56,54 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showVersionToast, setShowVersionToast] = useState(false)
   const opacityRef = useRef<HTMLDivElement>(null)
+  const [autoStart, setAutoStart] = useState(false)
+  
+  const { t, i18n } = useTranslation()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Auto-Start Check
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ipcRenderer } = require('electron')
+      ipcRenderer.invoke('get-auto-start-status').then((status: boolean) => {
+        setAutoStart(status)
+      })
+    } catch { /* Not in Electron */ }
+  }, [])
+
+  const toggleAutoStart = () => {
+    const newState = !autoStart
+    setAutoStart(newState)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ipcRenderer } = require('electron')
+      ipcRenderer.send('toggle-auto-start', newState)
+    } catch { /* Not in Electron */ }
+  }
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'zh' : 'en'
+    i18n.changeLanguage(newLang)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    
+    if (active.id !== over?.id) {
+      setTodos((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id)
+        const newIndex = items.findIndex((i) => i.id === over?.id)
+        return arrayMove(items, oldIndex, newIndex)
+      })
+    }
+  }
   
   // Resize logic
   const isResizing = useRef(false)
@@ -319,6 +372,18 @@ function App() {
           </motion.div>
           
           <div className="flex items-center gap-1.5 app-no-drag">
+            {/* Language Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85 }}
+              onClick={toggleLanguage}
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/60 transition-all duration-300 cursor-pointer"
+              title={t('Language')}
+            >
+              <Languages size={13} />
+              <span className="text-[9px] font-bold ml-0.5">{i18n.language === 'en' ? 'En' : '中'}</span>
+            </motion.button>
+
             {/* Opacity Control */}
             <div className="relative" ref={opacityRef}>
               <motion.button
@@ -326,10 +391,11 @@ function App() {
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setShowOpacityControl(!showOpacityControl)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                  showOpacityControl ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/40'
+                  showOpacityControl ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/60'
                 }`}
+                title={t('Opacity')}
               >
-                <Droplet size={11} fill={showOpacityControl ? 'currentColor' : 'none'} />
+                <Droplet size={13} fill={showOpacityControl ? 'currentColor' : 'none'} />
               </motion.button>
               
               <AnimatePresence>
@@ -338,10 +404,10 @@ function App() {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                    className="absolute top-9 left-1/2 -translate-x-1/2 w-32 p-3 bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/50 flex flex-col gap-2 items-center z-50 origin-top"
+                    className="absolute top-9 left-1/2 -translate-x-1/2 w-32 p-3 bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/50 flex flex-col gap-3 items-center z-50 origin-top"
                   >
                     <div className="w-full flex justify-between text-[10px] text-neu-muted font-medium px-0.5">
-                      <span>Opacity</span>
+                      <span>{t('Opacity')}</span>
                       <span>{Math.round(opacity * 100)}%</span>
                     </div>
                     <input
@@ -353,6 +419,21 @@ function App() {
                       onChange={(e) => setOpacity(parseFloat(e.target.value))}
                       className="w-full h-1.5 bg-violet-100 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500 [&::-webkit-slider-thumb]:shadow-sm outline-none"
                     />
+                    
+                    {/* Auto Start Toggle inside Opacity Menu for now or separate? 
+                        The user asked for a setting. Putting it here is quick. 
+                        Actually, let's keep it here or add a Settings menu later.
+                        For now, add a separator and Auto Start toggle.
+                    */}
+                    <div className="w-full pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-[10px] text-neu-muted font-medium">{t('Auto Start')}</span>
+                        <button 
+                            onClick={toggleAutoStart}
+                            className={`w-8 h-4 rounded-full transition-colors relative ${autoStart ? 'bg-violet-500' : 'bg-gray-200'}`}
+                        >
+                            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all shadow-sm ${autoStart ? 'left-4.5' : 'left-0.5'}`} />
+                        </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -363,28 +444,28 @@ function App() {
               whileTap={{ scale: 0.85 }}
               onClick={togglePin}
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                isPinned ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/40'
+                isPinned ? 'bg-violet-500/20 text-violet-600' : 'hover:bg-black/5 text-neu-muted/60'
               }`}
             >
-              <Pin size={11} fill={isPinned ? 'currentColor' : 'none'} />
+              <Pin size={13} fill={isPinned ? 'currentColor' : 'none'} />
             </motion.button>
             
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
               onClick={minimizeApp}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/40 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-muted/60 transition-all duration-300 cursor-pointer"
             >
-              <Minus size={11} />
+              <Minus size={13} />
             </motion.button>
             
             <motion.button
               whileHover={{ scale: 1.15, backgroundColor: 'rgba(255,107,107,0.1)' }}
               whileTap={{ scale: 0.85 }}
               onClick={closeApp}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:text-red-400 text-neu-muted/40 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:text-red-400 text-neu-muted/60 transition-all duration-300 cursor-pointer"
             >
-              <X size={11} />
+              <X size={13} />
             </motion.button>
           </div>
         </div>
@@ -409,13 +490,13 @@ function App() {
                 </div>
                 <div className="flex-1 min-w-0 z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-violet-900 tracking-tight">Welcome to SoftDo {VERSION}!</span>
+                    <span className="text-xs font-bold text-violet-900 tracking-tight">{t('Welcome').replace('{{version}}', VERSION)}</span>
                     <button onClick={closeWelcome} className="text-violet-400 hover:text-violet-600 transition-colors p-0.5 hover:bg-violet-100/50 rounded-full">
                       <X size={12} />
                     </button>
                   </div>
                   <p className="text-[10px] text-violet-600/90 leading-relaxed font-medium">
-                    Enjoy the new <span className="text-violet-700 font-bold">Resize</span> & <span className="text-violet-700 font-bold">Opacity</span> features.
+                    {t('Enjoy features')}
                   </p>
                 </div>
               </div>
@@ -478,14 +559,14 @@ function App() {
             {/* Header with Clear All */}
             <header className="flex items-start justify-between">
               <div className="space-y-1">
-                <h1 className="text-2xl font-bold text-neu-text tracking-tight">Today's Tasks</h1>
+                <h1 className="text-2xl font-bold text-neu-text tracking-tight">{t("Today's Tasks")}</h1>
                 <motion.p 
                   key={todos.filter(t => !t.completed).length}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-neu-muted text-xs font-medium tracking-wide"
                 >
-                  {todos.filter(t => !t.completed).length} remaining
+                  {todos.filter(t => !t.completed).length} {t('remaining')}
                 </motion.p>
               </div>
               
@@ -503,7 +584,7 @@ function App() {
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer"
                     >
                         <Trash2 size={12} />
-                        <span>Clear All</span>
+                        <span>{t('Clear All')}</span>
                     </motion.button>
                     )}
                 </AnimatePresence>
@@ -511,55 +592,60 @@ function App() {
             </header>
             
             {/* Input & List */}
-            {/* Input & List */}
             <div className="space-y-4">
               <TodoInput onAdd={addTodo} />
               
-              <AnimatePresence mode="popLayout" initial={false}>
-                {todos.length === 0 ? (
-                  <motion.div
-                    key="empty"
-                    initial={{ opacity: 0, scale: 0.9, height: 0 }}
-                    animate={{ opacity: 1, scale: 1, height: 'auto' }}
-                    exit={{ opacity: 0, scale: 0.9, height: 0 }}
-                    transition={{ duration: 0.3, type: "spring", bounce: 0 }}
-                    className="text-center py-12 overflow-hidden"
-                  >
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center border border-violet-100/30"
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {todos.length === 0 ? (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0, scale: 0.9, height: 0 }}
+                      animate={{ opacity: 1, scale: 1, height: 'auto' }}
+                      exit={{ opacity: 0, scale: 0.9, height: 0 }}
+                      transition={{ duration: 0.3, type: "spring", bounce: 0 }}
+                      className="text-center py-12 overflow-hidden"
                     >
-                      <CircleCheck size={24} className="text-violet-400" />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center border border-violet-100/30"
+                      >
+                        <CircleCheck size={24} className="text-violet-400" />
+                      </motion.div>
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.15 }}
+                        className="text-neu-muted/60 text-sm font-medium"
+                      >
+                        All clear! Add a task above.
+                      </motion.p>
                     </motion.div>
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="text-neu-muted/60 text-sm font-medium"
+                  ) : (
+                    <motion.div
+                      key="list"
+                      layout
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
                     >
-                      All clear! Add a task above.
-                    </motion.p>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="list"
-                    layout
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                  >
-                    <TodoList 
-                      todos={todos} 
-                      onToggle={toggleTodo} 
-                      onDelete={deleteTodo}
-                      onRename={renameTodo}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <TodoList 
+                        todos={todos} 
+                        onToggle={toggleTodo} 
+                        onDelete={deleteTodo}
+                        onRename={renameTodo}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </DndContext>
             </div>
           </motion.div>
         </div>

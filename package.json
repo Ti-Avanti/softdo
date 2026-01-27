@@ -1,7 +1,7 @@
 {
   "name": "softdo",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.5.2",
   "author": {
     "name": "xxomega2077xx",
     "email": "xxomega2077xx@gmail.com"
@@ -75,7 +75,10 @@
       "runAfterFinish": true
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "build/icon.png",
       "category": "public.app-category.productivity",
       "artifactName": "SoftDo-${version}-macOS.${ext}"
@@ -85,7 +88,10 @@
       "icon": "build/icon.png"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png",
       "artifactName": "SoftDo-${version}-Linux.${ext}"
     },
@@ -93,5 +99,12 @@
       "provider": "github",
       "releaseType": "release"
     }
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "i18next": "^25.8.0",
+    "react-i18next": "^16.5.3"
   }
 }

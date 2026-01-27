@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 interface TodoInputProps {
   onAdd: (text: string, dueTime?: Date | null) => void;
@@ -13,6 +14,9 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
   const [hour, setHour] = useState('12')
   const [minute, setMinute] = useState('00')
   const [calendarMonth, setCalendarMonth] = useState(new Date())
+  
+  const minuteRef = useRef<HTMLInputElement>(null)
+  const { t } = useTranslation()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -182,7 +186,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="What needs to be done?"
+            placeholder={t('What needs to be done?')}
             className="w-full bg-white/70 backdrop-blur-sm rounded-[18px] px-5 py-3 outline-none text-neu-text placeholder-neu-muted/35 border border-white/60 transition-all duration-200 focus:bg-white/90 focus:border-violet-200 text-sm font-medium shadow-sm"
           />
           
@@ -286,12 +290,20 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                       inputMode="numeric"
                       maxLength={2}
                       value={hour}
-                      onChange={(e) => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 2)
+                        setHour(val)
+                        if (val.length === 2) {
+                            minuteRef.current?.focus()
+                            minuteRef.current?.select()
+                        }
+                      }}
                       onBlur={() => setHour(normalizeHour(hour))}
                       className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
                     />
                     <span className="text-violet-300 font-bold">:</span>
                     <input
+                      ref={minuteRef}
                       type="text"
                       inputMode="numeric"
                       maxLength={2}

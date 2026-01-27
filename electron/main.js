@@ -65,6 +65,21 @@ function createWindow() {
     mainWindow?.hide();
   });
 
+  // Auto-Start Handlers
+  ipcMain.handle('get-auto-start-status', () => {
+    return app.getLoginItemSettings().openAtLogin;
+  });
+
+  ipcMain.on('toggle-auto-start', (event, openAtLogin) => {
+    app.setLoginItemSettings({
+      openAtLogin: openAtLogin,
+      path: process.execPath,
+      args: [
+        '--process-start-args', `"--hidden"` 
+      ]
+    });
+  });
+
   // Update check handlers
   ipcMain.handle('check-for-updates', async () => {
     return await checkForUpdates();

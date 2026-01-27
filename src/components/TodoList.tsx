@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { Todo } from '../App'
 import TodoItem from './TodoItem'
 import { VARIANTS_CONTAINER } from '../constants/animations'
@@ -19,17 +20,19 @@ export default function TodoList({ todos, onToggle, onDelete, onRename }: TodoLi
       animate="visible"
       exit="exit"
     >
-      <AnimatePresence mode='popLayout'>
-        {todos.map((todo) => (
-          <TodoItem 
-            key={todo.id} 
-            todo={todo} 
-            onToggle={onToggle} 
-            onDelete={onDelete}
-            onRename={onRename}
-          />
-        ))}
-      </AnimatePresence>
+      <SortableContext items={todos} strategy={verticalListSortingStrategy}>
+        <AnimatePresence mode='popLayout'>
+          {todos.map((todo) => (
+            <TodoItem 
+              key={todo.id} 
+              todo={todo} 
+              onToggle={onToggle} 
+              onDelete={onDelete}
+              onRename={onRename}
+            />
+          ))}
+        </AnimatePresence>
+      </SortableContext>
     </motion.div>
   )
 }
