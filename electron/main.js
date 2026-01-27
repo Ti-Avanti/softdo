@@ -20,6 +20,35 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.softdo.app');
 }
 
+// Single instance lock - prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, focus our window instead
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
+// Auto-launch (startup) handlers
+ipcMain.handle('get-auto-launch', () => {
+  return app.getLoginItemSettings().openAtLogin;
+});
+
+ipcMain.handle('set-auto-launch', (event, enabled) => {
+  app.setLoginItemSettings({
+    openAtLogin: enabled,
+    path: process.execPath,
+  });
+  return app.getLoginItemSettings().openAtLogin;
+});
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 360,
@@ -63,21 +92,6 @@ function createWindow() {
 
   ipcMain.on('close-to-tray', () => {
     mainWindow?.hide();
-  });
-
-  // Auto-Start Handlers
-  ipcMain.handle('get-auto-start-status', () => {
-    return app.getLoginItemSettings().openAtLogin;
-  });
-
-  ipcMain.on('toggle-auto-start', (event, openAtLogin) => {
-    app.setLoginItemSettings({
-      openAtLogin: openAtLogin,
-      path: process.execPath,
-      args: [
-        '--process-start-args', `"--hidden"` 
-      ]
-    });
   });
 
   // Update check handlers
@@ -282,20 +296,10 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // Minimize to tray behavior on Windows usually keeps app running.
-  // We check handle usage.
+  // On Windows, quit the app when all windows are closed
+  // User can use tray icon to show/hide instead
   if (process.platform !== 'darwin') {
-    // If tray exists, we don't quit? 
-    // Actually user wants "minimize to tray". our close logic does that or quit?
-    // Current main.js: "close-to-tray" hides window.
-    // native "close" event usually destroys window unless intercepted.
-    // We assume App.tsx calls "minimizeApp" (minimize) or "closeApp" (window.close()).
-    // If window.close() is called, window-all-closed fires.
-    // We should probably keep running for notifications if configured?
-    // User requested "System Tray". If we quit, notifications stop.
-    // We should intercept close and hide instead, or let them quit via tray.
-    // For now, respect explicit quit.
-    // If user wants notifications, they should minimize.
+    app.quit();
   }
 });
 

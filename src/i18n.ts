@@ -1,52 +1,77 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+// Language translations
+export type Language = 'en' | 'zh'
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: {
-        translation: {
-          "Today's Tasks": "Today's Tasks",
-          "remaining": "remaining",
-          "Clear All": "Clear All",
-          "What needs to be done?": "What needs to be done?",
-          "Welcome": "Welcome to SoftDo {{version}}!",
-          "Enjoy features": "Enjoy the new Resize & Opacity features.",
-          "Up to date": "Up to date",
-          "Latest version": "You are on the latest version {{version}}",
-          "Update Available": "New Version {{version}}",
-          "Update": "Update",
-          "Skip": "Skip",
-          "Opacity": "Opacity",
-          "Auto Start": "Auto Start",
-          "Language": "Language"
-        }
-      },
-      zh: {
-        translation: {
-          "Today's Tasks": "今日任务",
-          "remaining": "剩余",
-          "Clear All": "清除所有",
-          "What needs to be done?": "有什么需要做的?",
-          "Welcome": "欢迎使用 SoftDo {{version}}!",
-          "Enjoy features": "尽情享受新的调整大小和透明度功能。",
-          "Up to date": "已是最新版本",
-          "Latest version": "您正在使用最新版本 {{version}}",
-          "Update Available": "新版本 {{version}}",
-          "Update": "更新",
-          "Skip": "跳过",
-          "Opacity": "透明度",
-          "Auto Start": "开机自启",
-          "Language": "语言"
-        }
-      }
-    },
-    lng: "en", // default language
-    fallbackLng: "en",
-    interpolation: {
-      escapeValue: false
-    }
-  });
+export const translations = {
+  en: {
+    appName: 'SoftDo',
+    todayTasks: "Today's Tasks",
+    remaining: 'remaining',
+    clearAll: 'Clear All',
+    whatNeedsToBeDone: 'What needs to be done?',
+    dropToReorder: 'Drop to reorder',
+    opacity: 'Opacity',
+    autoStart: 'Auto Start',
+    language: 'Language',
+    editDetails: 'Edit Details',
+    rename: 'Rename',
+    delete: 'Delete',
+    save: 'Save',
+    cancel: 'Cancel',
+    details: 'Details',
+    task: 'Task',
+    addDetails: 'Add more details about this task...',
+    allClear: 'All clear! Add a task above.',
+    upToDate: 'Up to date',
+    latestVersion: 'You are on the latest version',
+    newVersion: 'New Version',
+    updateAvailable: 'A new version is available with improved features.',
+    update: 'Update',
+    skip: 'Skip',
+    welcome: 'Welcome to SoftDo',
+    welcomeFeatures: 'Enjoy the new Resize & Opacity features.',
+    time: 'Time',
+    today: 'Today',
+    tomorrow: 'Tomorrow',
+    threeDays: '3 Days',
+    nextWeek: 'Next Week',
+    overdue: 'overdue',
+    left: 'left',
+  },
+  zh: {
+    appName: 'SoftDo',
+    todayTasks: '今日任务',
+    remaining: '项待办',
+    clearAll: '清空',
+    whatNeedsToBeDone: '添加新任务...',
+    dropToReorder: '松开以排序',
+    opacity: '透明度',
+    autoStart: '开机启动',
+    language: '语言',
+    editDetails: '编辑详情',
+    rename: '重命名',
+    delete: '删除',
+    save: '保存',
+    cancel: '取消',
+    details: '详情',
+    task: '任务',
+    addDetails: '添加更多任务详情...',
+    allClear: '已完成！在上方添加任务。',
+    upToDate: '已是最新',
+    latestVersion: '当前已是最新版本',
+    newVersion: '新版本',
+    updateAvailable: '发现新版本，包含更多改进。',
+    update: '更新',
+    skip: '跳过',
+    welcome: '欢迎使用 SoftDo',
+    welcomeFeatures: '体验全新的调整大小和透明度功能。',
+    time: '时间',
+    today: '今天',
+    tomorrow: '明天',
+    threeDays: '3天后',
+    nextWeek: '下周',
+    overdue: '已过期',
+    left: '剩余',
+  }
+}
 
-export default i18n;
+export const getTranslation = (lang: Language) => translations[lang]

@@ -1,22 +1,23 @@
 import { useState, useRef } from 'react'
 import { Plus, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
+import { getTranslation } from '../i18n'
+import type { Language } from '../i18n'
 
 interface TodoInputProps {
   onAdd: (text: string, dueTime?: Date | null) => void;
+  language: Language;
 }
 
-export default function TodoInput({ onAdd }: TodoInputProps) {
+export default function TodoInput({ onAdd, language }: TodoInputProps) {
+  const t = getTranslation(language)
   const [text, setText] = useState('')
   const [showDuePicker, setShowDuePicker] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
   const [hour, setHour] = useState('12')
   const [minute, setMinute] = useState('00')
   const [calendarMonth, setCalendarMonth] = useState(new Date())
-  
-  const minuteRef = useRef<HTMLInputElement>(null)
-  const { t } = useTranslation()
+  const minuteInputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,10 +70,10 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
 
   // Quick options
   const quickOptions = [
-    { label: 'Today', days: 0 },
-    { label: 'Tomorrow', days: 1 },
-    { label: 'In 3 days', days: 3 },
-    { label: 'In a week', days: 7 },
+    { label: t.today, days: 0 },
+    { label: t.tomorrow, days: 1 },
+    { label: t.threeDays, days: 3 },
+    { label: t.nextWeek, days: 7 },
   ]
 
   const selectQuickOption = (days: number) => {
@@ -85,7 +86,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
     if (!selectedDate) return ''
     const [year, month, day] = selectedDate.split('-').map(Number)
     const d = new Date(year, month - 1, day)
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    return d.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })
   }
 
   // Calendar helpers
@@ -161,7 +162,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
           disabled={past}
           onClick={() => selectDay(day)}
           className={`
-            w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-100 cursor-pointer
+            w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-100 cursor-pointer
             ${selected ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30' :
               today ? 'bg-violet-100 text-violet-600' :
               past ? 'text-neu-muted/20 cursor-not-allowed' :
@@ -186,8 +187,8 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={t('What needs to be done?')}
-            className="w-full bg-white/70 backdrop-blur-sm rounded-[18px] px-5 py-3 outline-none text-neu-text placeholder-neu-muted/35 border border-white/60 transition-all duration-200 focus:bg-white/90 focus:border-violet-200 text-sm font-medium shadow-sm"
+            placeholder={t.whatNeedsToBeDone}
+            className="w-full bg-white/70 backdrop-blur-xl rounded-[18px] px-5 py-3 outline-none text-neu-text placeholder-neu-muted/35 border border-white/60 transition-all duration-200 focus:bg-white/95 focus:border-violet-200 text-sm font-medium shadow-sm"
           />
           
           <button
@@ -223,10 +224,10 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="p-4 bg-white rounded-2xl border border-violet-100/50 shadow-lg space-y-4 overflow-hidden"
+            className="p-3 bg-white rounded-2xl border border-violet-100/50 shadow-lg space-y-3 overflow-hidden"
           >
             {/* Quick Options */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {quickOptions.map((opt) => {
                 const d = new Date()
                 d.setDate(d.getDate() + opt.days)
@@ -281,8 +282,8 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
             </div>
             
             {/* Time Input */}
-            <div className="flex items-center justify-between pt-4 border-t border-violet-50">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 pt-3 border-t border-violet-50">
+              <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-neu-muted/40 uppercase tracking-wider">Time</span>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -290,32 +291,35 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                       inputMode="numeric"
                       maxLength={2}
                       value={hour}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '').slice(0, 2)
                         setHour(val)
                         if (val.length === 2) {
-                            minuteRef.current?.focus()
-                            minuteRef.current?.select()
+                          setHour(normalizeHour(val))
+                          minuteInputRef.current?.focus()
+                          minuteInputRef.current?.select()
                         }
                       }}
-                      onBlur={() => setHour(normalizeHour(hour))}
+                      onBlur={(e) => setHour(normalizeHour(e.target.value))}
                       className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
                     />
                     <span className="text-violet-300 font-bold">:</span>
                     <input
-                      ref={minuteRef}
+                      ref={minuteInputRef}
                       type="text"
                       inputMode="numeric"
                       maxLength={2}
                       value={minute}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                      onBlur={() => setMinute(normalizeMinute(minute))}
+                      onBlur={(e) => setMinute(normalizeMinute(e.target.value))}
                       className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
                     />
                   </div>
               </div>
               
-              <div className="flex gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {['09', '12', '18'].map((h) => (
                   <button
                     key={h}
@@ -339,7 +343,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   <span className="text-[11px] font-semibold text-green-700">
-                    {formatSelectedDate()} at {normalizeHour(hour)}:{normalizeMinute(minute)}
+                    {formatSelectedDate()} {language === 'zh' ? ' ' : 'at'} {normalizeHour(hour)}:{normalizeMinute(minute)}
                   </span>
                 </div>
                 <button
@@ -347,7 +351,7 @@ export default function TodoInput({ onAdd }: TodoInputProps) {
                   onClick={() => { setSelectedDate(''); setHour('12'); setMinute('00') }}
                   className="text-[10px] font-medium text-green-600 hover:text-red-500 cursor-pointer"
                 >
-                  Clear
+                  {language === 'zh' ? '清除' : 'Clear'}
                 </button>
               </div>
             )}
