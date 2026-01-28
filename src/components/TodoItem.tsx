@@ -348,37 +348,37 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[280px] bg-white rounded-3xl shadow-2xl border border-white/50 overflow-hidden"
+              className="w-full max-w-[260px] bg-white rounded-3xl shadow-2xl border border-white/50 overflow-hidden"
             >
-              <div className="p-4 space-y-4">
+              <div className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                   <h3 className="text-sm font-bold text-neu-text">{t.changeDue}</h3>
-                   <button onClick={() => setShowDueModal(false)} className="text-neu-muted hover:text-neu-text p-1"><X size={16}/></button>
+                   <h3 className="text-xs font-bold text-neu-text">{t.changeDue}</h3>
+                   <button onClick={() => setShowDueModal(false)} className="text-neu-muted hover:text-neu-text p-1"><X size={14}/></button>
                 </div>
                 
                 {/* Simplified Calendar adapted from TodoInput */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronLeft size={16}/></button>
-                    <span className="text-xs font-bold">{calendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronRight size={16}/></button>
+                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronLeft size={14}/></button>
+                    <span className="text-[10px] font-bold">{calendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronRight size={14}/></button>
                   </div>
-                  <div className="grid grid-cols-7 gap-y-1 justify-items-center">
+                  <div className="grid grid-cols-7 gap-y-0.5 justify-items-center">
                     {headers}
                     {days}
                   </div>
                 </div>
                 
                 {/* Time picker */}
-                <div className="flex items-center justify-center gap-2 pt-3 border-t border-gray-100">
-                   <input type="text" maxLength={2} value={hour} onFocus={e => e.target.select()} onChange={e => setHour(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-10 h-10 rounded-xl bg-gray-50 text-center text-sm font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
+                <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-100">
+                   <input type="text" maxLength={2} value={hour} onFocus={e => e.target.select()} onChange={e => setHour(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-8 h-8 rounded-lg bg-gray-50 text-center text-xs font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
                    <span className="font-bold text-gray-300">:</span>
-                   <input type="text" maxLength={2} value={minute} onFocus={e => e.target.select()} onChange={e => setMinute(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-10 h-10 rounded-xl bg-gray-50 text-center text-sm font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
+                   <input type="text" maxLength={2} value={minute} onFocus={e => e.target.select()} onChange={e => setMinute(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-8 h-8 rounded-lg bg-gray-50 text-center text-xs font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
                 </div>
                 
-                <div className="flex gap-2">
-                   <button onClick={() => { setSelectedDate(''); onUpdateDue(todo.id, null); setShowDueModal(false); }} className="flex-1 py-2.5 text-xs font-bold text-red-500 bg-red-50 rounded-2xl hover:bg-red-100 transition-colors">Clear</button>
-                   <button onClick={handleSaveDue} className="flex-2 py-2.5 text-xs font-bold text-white bg-violet-500 rounded-2xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors">Save</button>
+                <div className="grid grid-cols-2 gap-2">
+                   <button onClick={() => { setSelectedDate(''); onUpdateDue(todo.id, null); setShowDueModal(false); }} className="py-1.5 text-[10px] font-bold text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">Clear</button>
+                   <button onClick={handleSaveDue} className="py-1.5 text-[10px] font-bold text-white bg-violet-500 rounded-xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors">Save</button>
                 </div>
               </div>
             </motion.div>

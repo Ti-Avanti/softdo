@@ -25,7 +25,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.6.1'
+const VERSION = 'v1.6.2'
 const LANGUAGE_KEY = 'softdo-language'
 
 function App() {
