@@ -25,7 +25,7 @@ const STORAGE_KEY = 'softdo-todos'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
 const OPACITY_KEY = 'softdo-opacity'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.6.0'
+const VERSION = 'v1.6.1'
 const LANGUAGE_KEY = 'softdo-language'
 
 function App() {
@@ -245,6 +245,10 @@ function App() {
     })
   }
 
+  const updateDue = (id: string, dueTime: Date | null) => {
+    setTodos(prev => prev.map(t => t.id === id ? { ...t, dueTime } : t))
+  }
+
   const clearAll = () => {
     setTodos([])
   }
@@ -313,7 +317,7 @@ function App() {
     <div className="h-screen w-screen p-4 bg-transparent flex flex-col">
       {/* Main Container */}
       <div 
-        className="relative flex-1 w-full rounded-[28px] overflow-hidden flex flex-col border border-white/60 shadow-[0_4px_30px_rgba(0,0,0,0.1)] transition-colors duration-200 backdrop-blur-3xl"
+        className="relative flex-1 w-full rounded-[28px] overflow-hidden flex flex-col border border-white/60 transition-colors duration-200 backdrop-blur-3xl"
         style={{ backgroundColor: `rgba(240, 238, 248, ${opacity})` }}
       >
         
@@ -457,7 +461,7 @@ function App() {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
               onClick={minimizeApp}
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-text/30 transition-all duration-300 cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 text-neu-text/30 transition-all duration-300 cursor-pointer ml-1"
             >
               <Minus size={11} strokeWidth={3} />
             </motion.button>
@@ -561,8 +565,8 @@ function App() {
           >
             {/* Header with Clear All */}
             <header className="flex items-start justify-between">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-bold text-neu-text tracking-tight">{t.todayTasks}</h1>
+              <div className="space-y-1 min-w-0 flex-1">
+                <h1 className="text-2xl font-bold text-neu-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{t.todayTasks}</h1>
                 <motion.p 
                   key={todos.filter(t => !t.completed).length}
                   initial={{ opacity: 0, y: -5 }}
@@ -584,7 +588,7 @@ function App() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={clearAll}
-                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer border border-red-100/50 shadow-sm"
+                        className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer border border-red-100/50 shadow-sm ml-4 whitespace-nowrap"
                     >
                         <Trash2 size={12} strokeWidth={2.5} />
                         <span>{t.clearAll}</span>
@@ -641,6 +645,7 @@ function App() {
                       onDelete={deleteTodo}
                       onRename={renameTodo}
                       onUpdateDetails={updateDetails}
+                      onUpdateDue={updateDue}
                       onReorder={reorderTodos}
                       language={language}
                     />

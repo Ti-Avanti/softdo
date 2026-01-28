@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Todo } from '../App'
 import TodoItem from './TodoItem'
-import { getTranslation } from '../i18n'
 import type { Language } from '../i18n'
 
 interface TodoListProps {
@@ -11,12 +10,21 @@ interface TodoListProps {
   onDelete: (id: string) => void;
   onRename: (id: string, text: string) => void;
   onUpdateDetails: (id: string, details: string) => void;
+  onUpdateDue: (id: string, due: Date | null) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
   language: Language;
 }
 
-export default function TodoList({ todos, onToggle, onDelete, onRename, onUpdateDetails, onReorder, language }: TodoListProps) {
-  const t = getTranslation(language)
+export default function TodoList({ 
+  todos, 
+  onToggle, 
+  onDelete, 
+  onRename, 
+  onUpdateDetails, 
+  onUpdateDue,
+  onReorder, 
+  language 
+}: TodoListProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [targetIndex, setTargetIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -25,7 +33,6 @@ export default function TodoList({ todos, onToggle, onDelete, onRename, onUpdate
     setDraggedIndex(index)
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', index.toString())
-    // Make drag image semi-transparent
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5'
     }
@@ -106,24 +113,11 @@ export default function TodoList({ todos, onToggle, onDelete, onRename, onUpdate
               onDelete={onDelete}
               onRename={onRename}
               onUpdateDetails={onUpdateDetails}
+              onUpdateDue={onUpdateDue}
               language={language}
             />
           </motion.div>
         ))}
-      </AnimatePresence>
-      
-      {/* Drag Hint Toast */}
-      <AnimatePresence>
-        {draggedIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-violet-600 text-white text-xs font-medium rounded-full shadow-lg z-50 pointer-events-none"
-          >
-            {t.dropToReorder}
-          </motion.div>
-        )}
       </AnimatePresence>
     </div>
   )
