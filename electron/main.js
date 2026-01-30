@@ -70,7 +70,7 @@ function createWindow() {
     resizable: false,
     hasShadow: false,
     alwaysOnTop: false,
-    skipTaskbar: false,
+    skipTaskbar: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
