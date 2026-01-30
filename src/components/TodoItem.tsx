@@ -244,6 +244,62 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           hasDeadline ? 'bg-transparent border-white/30' : darkMode ? 'bg-white/5 hover:bg-white/10 border-white/10' : 'bg-white/60 hover:bg-white/80 border-white/50'
         )}
       >
+        {/* Completion ripple effect - spreads across the entire task bar */}
+        <AnimatePresence>
+          {todo.completed && (
+            <>
+              {/* Main ripple wave from left */}
+              <motion.div
+                initial={{ scaleX: 0, opacity: 0 }}
+                animate={{ scaleX: 1, opacity: [0, 0.4, 0] }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 origin-left"
+              />
+              {/* Secondary shimmer wave */}
+              <motion.div
+                initial={{ x: '-100%', opacity: 0 }}
+                animate={{ x: '200%', opacity: [0, 0.6, 0] }}
+                transition={{ duration: 1, ease: "easeInOut", delay: 0.1 }}
+                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12"
+              />
+              {/* Sparkle overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.3, 0] }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-amber-400/30 via-pink-400/30 to-violet-400/30"
+              />
+              {/* Border glow pulse */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="absolute inset-0 rounded-[24px] border-2 border-violet-400/60"
+                style={{ boxShadow: '0 0 20px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(139, 92, 246, 0.2)' }}
+              />
+              {/* Floating particles across the bar */}
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={`bar-particle-${i}`}
+                  initial={{ x: 20, y: '50%', scale: 0, opacity: 0 }}
+                  animate={{
+                    x: 40 + i * 35,
+                    y: ['50%', `${30 + Math.random() * 40}%`, '50%'],
+                    scale: [0, 1.2, 0],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 + i * 0.05 }}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{
+                    background: ['#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#fb923c', '#22d3ee', '#f43f5e'][i],
+                    boxShadow: `0 0 8px ${['#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#fb923c', '#22d3ee', '#f43f5e'][i]}`,
+                  }}
+                />
+              ))}
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Deadline Progress Bar */}
         {hasDeadline && timeInfo && progressColors && (
           <>
@@ -310,81 +366,137 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           <AnimatePresence>
             {todo.completed && (
               <>
-                {/* Outer ring burst */}
+                {/* Multiple ring bursts with different timing */}
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: [0, 2.5, 3], opacity: [0, 0.6, 0] }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  animate={{ scale: [0, 2.5, 3.5], opacity: [0, 0.8, 0] }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
                   className="absolute inset-0 rounded-full border-2 border-violet-400"
                 />
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 2, 3], opacity: [0, 0.6, 0] }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                  className="absolute inset-0 rounded-full border-2 border-pink-400"
+                />
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 1.5, 2.5], opacity: [0, 0.5, 0] }}
+                  transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
+                  className="absolute inset-0 rounded-full border-2 border-amber-400"
+                />
 
-                {/* Inner glow pulse */}
+                {/* Inner glow pulse - multiple layers */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 2.5, 3], opacity: [0, 0.5, 0] }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-500"
+                />
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: [0, 2, 2.5], opacity: [0, 0.4, 0] }}
-                  transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-500"
+                  transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 to-rose-500"
                 />
 
-                {/* Star burst particles - 12 particles in a circle */}
-                {[...Array(12)].map((_, i) => (
+                {/* Star burst particles - 16 particles in a circle */}
+                {[...Array(16)].map((_, i) => (
                   <motion.div
                     key={`star-${i}`}
                     initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
                     animate={{
-                      scale: [0, 1.2, 0.8, 0],
-                      x: Math.cos((i * 30 * Math.PI) / 180) * 35,
-                      y: Math.sin((i * 30 * Math.PI) / 180) * 35,
+                      scale: [0, 1.5, 1, 0],
+                      x: Math.cos((i * 22.5 * Math.PI) / 180) * 40,
+                      y: Math.sin((i * 22.5 * Math.PI) / 180) * 40,
                       opacity: [1, 1, 0.8, 0],
                     }}
-                    transition={{ duration: 0.6, ease: "easeOut", delay: i * 0.02 }}
-                    className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    transition={{ duration: 0.7, ease: "easeOut", delay: i * 0.015 }}
+                    className="absolute top-1/2 left-1/2 w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
                     style={{
-                      background: ['#a78bfa', '#c084fc', '#f472b6', '#818cf8', '#34d399', '#fbbf24'][i % 6],
-                      boxShadow: `0 0 6px ${['#a78bfa', '#c084fc', '#f472b6', '#818cf8', '#34d399', '#fbbf24'][i % 6]}`,
+                      background: ['#a78bfa', '#c084fc', '#f472b6', '#fb7185', '#34d399', '#fbbf24', '#38bdf8', '#818cf8'][i % 8],
+                      boxShadow: `0 0 8px ${['#a78bfa', '#c084fc', '#f472b6', '#fb7185', '#34d399', '#fbbf24', '#38bdf8', '#818cf8'][i % 8]}`,
                     }}
                   />
                 ))}
 
-                {/* Sparkle stars - 6 larger sparkles */}
-                {[...Array(6)].map((_, i) => (
+                {/* Sparkle stars - 8 larger sparkles */}
+                {[...Array(8)].map((_, i) => (
                   <motion.div
                     key={`sparkle-${i}`}
                     initial={{ scale: 0, x: 0, y: 0, opacity: 0, rotate: 0 }}
                     animate={{
-                      scale: [0, 1.5, 0],
-                      x: Math.cos(((i * 60 + 30) * Math.PI) / 180) * 28,
-                      y: Math.sin(((i * 60 + 30) * Math.PI) / 180) * 28,
+                      scale: [0, 1.8, 0],
+                      x: Math.cos(((i * 45 + 22.5) * Math.PI) / 180) * 32,
+                      y: Math.sin(((i * 45 + 22.5) * Math.PI) / 180) * 32,
                       opacity: [0, 1, 0],
                       rotate: [0, 180],
                     }}
-                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 + i * 0.03 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 + i * 0.025 }}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                   >
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill={['#fbbf24', '#f472b6', '#34d399', '#818cf8', '#fb923c', '#a78bfa'][i]}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill={['#fbbf24', '#f472b6', '#34d399', '#818cf8', '#fb923c', '#a78bfa', '#22d3ee', '#f43f5e'][i]}>
                       <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
                     </svg>
                   </motion.div>
                 ))}
 
-                {/* Confetti trails */}
-                {[...Array(8)].map((_, i) => (
+                {/* Confetti trails - 12 pieces */}
+                {[...Array(12)].map((_, i) => (
                   <motion.div
                     key={`confetti-${i}`}
                     initial={{ scale: 0, x: 0, y: 0, opacity: 1, rotate: 0 }}
                     animate={{
-                      scale: [0, 1, 0.5],
-                      x: Math.cos(((i * 45 + 22.5) * Math.PI) / 180) * 45,
-                      y: Math.sin(((i * 45 + 22.5) * Math.PI) / 180) * 45,
-                      opacity: [1, 0.8, 0],
-                      rotate: [0, 360],
+                      scale: [0, 1.2, 0.6],
+                      x: Math.cos(((i * 30 + 15) * Math.PI) / 180) * 50,
+                      y: Math.sin(((i * 30 + 15) * Math.PI) / 180) * 50,
+                      opacity: [1, 0.9, 0],
+                      rotate: [0, 360 + i * 30],
                     }}
-                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.05 }}
-                    className="absolute top-1/2 left-1/2 w-1.5 h-3 -translate-x-1/2 -translate-y-1/2 rounded-sm"
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.03 + i * 0.02 }}
+                    className="absolute top-1/2 left-1/2 w-1.5 h-4 -translate-x-1/2 -translate-y-1/2 rounded-sm"
                     style={{
-                      background: ['#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#fb923c', '#c084fc', '#22d3ee'][i],
+                      background: ['#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#fb923c', '#c084fc', '#22d3ee', '#f43f5e', '#4ade80', '#facc15', '#60a5fa'][i],
                     }}
                   />
+                ))}
+
+                {/* Heart particles - 6 hearts */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={`heart-${i}`}
+                    initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                    animate={{
+                      scale: [0, 1.2, 0],
+                      x: Math.cos(((i * 60 + 30) * Math.PI) / 180) * 38,
+                      y: Math.sin(((i * 60 + 30) * Math.PI) / 180) * 38,
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 + i * 0.04 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill={['#f472b6', '#fb7185', '#f43f5e', '#ec4899', '#db2777', '#be185d'][i]}>
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  </motion.div>
+                ))}
+
+                {/* Floating emoji celebration */}
+                {['🎉', '✨', '🌟', '💫'].map((emoji, i) => (
+                  <motion.div
+                    key={`emoji-${i}`}
+                    initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                    animate={{
+                      scale: [0, 1.5, 1, 0],
+                      x: Math.cos(((i * 90 + 45) * Math.PI) / 180) * 45,
+                      y: Math.sin(((i * 90 + 45) * Math.PI) / 180) * 45 - 10,
+                      opacity: [0, 1, 1, 0],
+                    }}
+                    transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 + i * 0.08 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm"
+                  >
+                    {emoji}
+                  </motion.div>
                 ))}
               </>
             )}
@@ -393,25 +505,25 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           <motion.div
             layout
             animate={todo.completed ? {
-              scale: [1, 1.3, 0.9, 1.1, 1],
-              rotate: [0, -15, 15, -5, 0],
+              scale: [1, 1.4, 0.85, 1.15, 0.95, 1],
+              rotate: [0, -20, 20, -10, 5, 0],
             } : {}}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className={clsx(
               "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border",
               todo.completed
-                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.6)]'
+                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_0_25px_rgba(139,92,246,0.7)]'
                 : 'border-neu-muted/20 bg-white/70 backdrop-blur-md shadow-inner'
             )}
           >
             <motion.div
               initial={false}
               animate={{
-                scale: todo.completed ? [0, 1.3, 1] : 0,
+                scale: todo.completed ? [0, 1.5, 0.8, 1.2, 1] : 0,
                 opacity: todo.completed ? 1 : 0,
-                rotate: todo.completed ? [0, -30, 30, 0] : 0
+                rotate: todo.completed ? [0, -45, 45, -15, 0] : 0
               }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <Check size={12} strokeWidth={3} className="drop-shadow-sm" />
             </motion.div>
