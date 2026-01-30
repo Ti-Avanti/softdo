@@ -41,22 +41,47 @@ function formatTimeRemaining(createdAt: Date, dueTime: Date, t: ReturnType<typeo
   const progress = calculateProgress(createdAt, dueTime)
 
   if (diff < 0) {
-    const mins = Math.abs(Math.floor(diff / 60000))
-    if (mins < 60) return { text: `${mins}m ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
+    // 已过期
+    const totalSeconds = Math.abs(Math.floor(diff / 1000))
+    const mins = Math.floor(totalSeconds / 60)
+    const secs = totalSeconds % 60
+    if (mins < 60) {
+      return { text: `${mins}m ${secs}s ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
+    }
     const hours = Math.floor(mins / 60)
-    if (hours < 24) return { text: `${hours}h ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
-    return { text: `${Math.floor(hours / 24)}d ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
+    const remainMins = mins % 60
+    if (hours < 24) {
+      return { text: `${hours}h ${remainMins}m ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
+    }
+    return { text: `${Math.floor(hours / 24)}d ${hours % 24}h ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
   }
 
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, progress }
+  // 未过期 - 精确到秒
+  const totalSeconds = Math.floor(diff / 1000)
+  const secs = totalSeconds % 60
+  const totalMins = Math.floor(totalSeconds / 60)
+  const mins = totalMins % 60
+  const totalHours = Math.floor(totalMins / 60)
+  const hours = totalHours % 24
+  const days = Math.floor(totalHours / 24)
 
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return { text: `${mins}m ${t.left}`, urgent: mins < 30, overdue: false, progress }
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return { text: `${hours}h ${mins % 60}m`, urgent: hours < 2, overdue: false, progress }
-  const days = Math.floor(hours / 24)
-  return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false, progress }
+  if (totalSeconds < 60) {
+    // 小于1分钟，只显示秒
+    return { text: `${totalSeconds}s`, urgent: true, overdue: false, progress }
+  }
+
+  if (totalMins < 60) {
+    // 小于1小时，显示分钟和秒
+    return { text: `${mins}m ${secs}s ${t.left}`, urgent: totalMins < 30, overdue: false, progress }
+  }
+
+  if (totalHours < 24) {
+    // 小于1天，显示小时、分钟和秒
+    return { text: `${hours}h ${mins}m ${secs}s`, urgent: totalHours < 2, overdue: false, progress }
+  }
+
+  // 大于等于1天，显示天、小时和分钟
+  return { text: `${days}d ${hours}h ${mins}m`, urgent: false, overdue: false, progress }
 }
 
 // 格式化日期为 YYYY-MM-DD
@@ -88,6 +113,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
   const [showDueModal, setShowDueModal] = useState(false)
   const [dateValue, setDateValue] = useState('')
   const [timeValue, setTimeValue] = useState('12:00')
+  const [secondsValue, setSecondsValue] = useState(0) // 保存精确秒数
 
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -97,11 +123,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
       const d = new Date(todo.dueTime)
       setDateValue(formatDateForInput(d))
       setTimeValue(formatTimeForInput(d))
+      setSecondsValue(d.getSeconds())
     } else {
       // 默认设置为今天
       const today = new Date()
       setDateValue(formatDateForInput(today))
       setTimeValue('12:00')
+      setSecondsValue(0)
     }
     setShowDueModal(true)
     setShowContextMenu(false)
@@ -112,7 +140,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
     if (dateValue) {
       const [year, month, day] = dateValue.split('-').map(Number)
       const [hours, minutes] = timeValue.split(':').map(Number)
-      const due = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0)
+      const due = new Date(year, month - 1, day, hours || 0, minutes || 0, secondsValue, 0)
       onUpdateDue(todo.id, due)
     } else {
       onUpdateDue(todo.id, null)
@@ -161,12 +189,46 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
   const timeInfo = todo.dueTime ? formatTimeRemaining(createdAt, new Date(todo.dueTime), t) : null
   const hasDeadline = todo.dueTime && !todo.completed
 
-  // 进度条颜色
+  // 进度条颜色 - 平滑渐变
   const getProgressColors = (progress: number, overdue: boolean) => {
-    if (overdue) return { elapsed: 'bg-gradient-to-r from-red-400 to-red-500', remaining: 'bg-red-100/50' }
-    if (progress > 80) return { elapsed: 'bg-gradient-to-r from-amber-400 to-orange-500', remaining: 'bg-amber-50/50' }
-    if (progress > 50) return { elapsed: 'bg-gradient-to-r from-yellow-400 to-amber-500', remaining: 'bg-yellow-50/50' }
-    return { elapsed: 'bg-gradient-to-r from-violet-400 to-purple-500', remaining: 'bg-violet-50/30' }
+    if (overdue) {
+      return {
+        elapsed: 'bg-red-500',
+        remaining: 'bg-red-100/50',
+        glowColor: 'rgba(239, 68, 68, 0.6)'
+      }
+    }
+
+    // 根据进度计算 HSL 颜色，从紫色(270)平滑过渡到红色(0)
+    // 0% -> 紫色 (hue: 270)
+    // 50% -> 黄色 (hue: 45)
+    // 100% -> 红色 (hue: 0)
+    let hue: number
+    let saturation: number
+    let lightness: number
+
+    if (progress <= 50) {
+      // 0-50%: 紫色(270) -> 黄色(45)
+      hue = 270 - (progress / 50) * 225
+      saturation = 70 + (progress / 50) * 20
+      lightness = 55
+    } else {
+      // 50-100%: 黄色(45) -> 红色(0)
+      hue = 45 - ((progress - 50) / 50) * 45
+      saturation = 90
+      lightness = 50 - ((progress - 50) / 50) * 5
+    }
+
+    const elapsedColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+    const remainingColor = `hsla(${hue}, ${saturation}%, ${lightness + 40}%, 0.3)`
+    const glowColor = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.6)`
+
+    return {
+      elapsed: elapsedColor,
+      remaining: remainingColor,
+      glowColor: glowColor,
+      isCustomColor: true
+    }
   }
 
   const progressColors = timeInfo ? getProgressColors(timeInfo.progress, timeInfo.overdue) : null
@@ -183,24 +245,29 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
         )}
       >
         {/* Deadline Progress Bar */}
-        {hasDeadline && timeInfo && (
+        {hasDeadline && timeInfo && progressColors && (
           <>
             <motion.div
-              className={clsx("absolute inset-0 rounded-[24px]", progressColors?.remaining)}
+              className="absolute inset-0 rounded-[24px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
+              style={{
+                backgroundColor: 'isCustomColor' in progressColors ? progressColors.remaining : undefined,
+              }}
             />
             <motion.div
               className={clsx(
                 "absolute top-0 left-0 h-full rounded-l-[24px]",
-                progressColors?.elapsed,
                 timeInfo.progress >= 100 && "rounded-r-[24px]"
               )}
               initial={{ width: 0 }}
               animate={{ width: `${timeInfo.progress}%` }}
               transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
-              style={{ opacity: timeInfo.overdue ? 0.4 : 0.25 }}
+              style={{
+                backgroundColor: 'isCustomColor' in progressColors ? progressColors.elapsed : undefined,
+                opacity: timeInfo.overdue ? 0.4 : 0.3,
+              }}
             />
             {timeInfo.progress < 100 && !timeInfo.overdue && (
               <motion.div
@@ -209,16 +276,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                 animate={{ left: `${timeInfo.progress}%` }}
                 transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
                 style={{
-                  background: timeInfo.progress > 80
-                    ? 'linear-gradient(to bottom, rgba(251, 191, 36, 0.8), rgba(249, 115, 22, 0.8))'
-                    : timeInfo.progress > 50
-                    ? 'linear-gradient(to bottom, rgba(250, 204, 21, 0.8), rgba(245, 158, 11, 0.8))'
-                    : 'linear-gradient(to bottom, rgba(167, 139, 250, 0.8), rgba(139, 92, 246, 0.8))',
-                  boxShadow: timeInfo.progress > 80
-                    ? '0 0 12px rgba(249, 115, 22, 0.6)'
-                    : timeInfo.progress > 50
-                    ? '0 0 12px rgba(245, 158, 11, 0.6)'
-                    : '0 0 12px rgba(139, 92, 246, 0.6)',
+                  backgroundColor: 'isCustomColor' in progressColors ? progressColors.elapsed : undefined,
+                  boxShadow: `0 0 12px ${progressColors.glowColor}`,
                   transform: 'translateX(-50%)'
                 }}
               />
@@ -517,9 +576,10 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                       type="button"
                       onClick={() => {
                         const d = new Date()
-                        d.setMinutes(d.getMinutes() + opt.minutes)
+                        d.setTime(d.getTime() + opt.minutes * 60 * 1000) // 精确到毫秒
                         setDateValue(formatDateForInput(d))
                         setTimeValue(formatTimeForInput(d))
+                        setSecondsValue(d.getSeconds())
                       }}
                       className={`py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
                         darkMode
@@ -543,9 +603,10 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                       type="button"
                       onClick={() => {
                         const d = new Date()
-                        d.setMinutes(d.getMinutes() + opt.minutes)
+                        d.setTime(d.getTime() + opt.minutes * 60 * 1000) // 精确到毫秒
                         setDateValue(formatDateForInput(d))
                         setTimeValue(formatTimeForInput(d))
+                        setSecondsValue(d.getSeconds())
                       }}
                       className={`py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
                         darkMode
@@ -578,7 +639,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                       <button
                         key={opt.label}
                         type="button"
-                        onClick={() => setDateValue(optValue)}
+                        onClick={() => { setDateValue(optValue); setSecondsValue(0); }}
                         className={clsx(
                           "py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer",
                           dateValue === optValue
@@ -636,10 +697,10 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                     <button
                       key={time}
                       type="button"
-                      onClick={() => setTimeValue(time)}
+                      onClick={() => { setTimeValue(time); setSecondsValue(0); }}
                       className={clsx(
                         "py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer",
-                        timeValue === time
+                        timeValue === time && secondsValue === 0
                           ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
                           : darkMode
                           ? 'bg-white/5 text-violet-400 hover:bg-white/10 border border-white/10'
