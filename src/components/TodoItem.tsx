@@ -14,6 +14,7 @@ interface TodoItemProps {
   onUpdateDetails: (id: string, details: string) => void
   onUpdateDue: (id: string, due: Date | null) => void
   language: Language
+  darkMode?: boolean
   onDragStart?: () => void
   onDragEnd?: () => void
   isDragging?: boolean
@@ -73,7 +74,7 @@ function formatTimeForInput(date: Date): string {
   return `${hours}:${minutes}`
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateDetails, onUpdateDue, language, onDragStart, onDragEnd }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateDetails, onUpdateDue, language, darkMode = false, onDragStart, onDragEnd }: TodoItemProps) {
   const t = getTranslation(language)
   const [, setTick] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
@@ -178,7 +179,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
         className={clsx(
           'group flex items-center gap-2 p-3.5 backdrop-blur-sm border rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden cursor-default',
           todo.completed && 'opacity-60',
-          hasDeadline ? 'bg-transparent border-white/30' : 'bg-white/60 hover:bg-white/80 border-white/50'
+          hasDeadline ? 'bg-transparent border-white/30' : darkMode ? 'bg-white/5 hover:bg-white/10 border-white/10' : 'bg-white/60 hover:bg-white/80 border-white/50'
         )}
       >
         {/* Deadline Progress Bar */}
@@ -277,16 +278,16 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 onBlur={() => { if (editText.trim()) onRename(todo.id, editText.trim()); else setEditText(todo.text); setIsEditing(false); }}
-                className="w-full bg-transparent border-none outline-none text-sm font-medium text-neu-text p-0 m-0"
+                className={`w-full bg-transparent border-none outline-none text-sm font-medium p-0 m-0 ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}
               />
             </form>
           ) : (
             <div className="relative group/text">
               <motion.span
-                animate={{ color: todo.completed ? 'rgba(99, 110, 114, 0.4)' : 'rgba(45, 52, 54, 1)' }}
+                animate={{ color: todo.completed ? (darkMode ? 'rgba(160, 160, 176, 0.4)' : 'rgba(99, 110, 114, 0.4)') : (darkMode ? 'rgba(234, 234, 234, 1)' : 'rgba(45, 52, 54, 1)') }}
                 className={clsx(
                   "block text-sm font-medium select-none truncate",
-                  hasDeadline && timeInfo?.overdue && "text-red-700"
+                  hasDeadline && timeInfo?.overdue && (darkMode ? "text-red-400" : "text-red-700")
                 )}
               >
                 {todo.text}
@@ -295,7 +296,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: todo.completed ? 1 : 0 }}
                 style={{ originX: 0 }}
-                className="absolute top-1/2 left-0 right-0 h-[1px] bg-neu-text/60 pointer-events-none"
+                className={`absolute top-1/2 left-0 right-0 h-[1px] pointer-events-none ${darkMode ? 'bg-neu-dark-text/60' : 'bg-neu-text/60'}`}
               />
             </div>
           )}
@@ -328,7 +329,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); openDueModal(); }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80 transition-all cursor-pointer"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                darkMode ? 'text-neu-dark-muted/50 hover:text-violet-400 hover:bg-violet-500/20' : 'text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80'
+              }`}
               title={t.changeDue}
             >
               <Clock size={14} />
@@ -337,7 +340,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); setEditText(todo.text); setIsEditing(true); }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80 transition-all cursor-pointer"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                darkMode ? 'text-neu-dark-muted/50 hover:text-violet-400 hover:bg-violet-500/20' : 'text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80'
+              }`}
               title={t.rename}
             >
               <Pencil size={14} />
@@ -346,7 +351,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(todo.id); }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-red-400 hover:bg-red-50/80 transition-all cursor-pointer"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                darkMode ? 'text-neu-dark-muted/50 hover:text-red-400 hover:bg-red-500/20' : 'text-neu-muted/30 hover:text-red-400 hover:bg-red-50/80'
+              }`}
               title={t.delete}
             >
               <Trash2 size={14} />
@@ -362,18 +369,20 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             ref={menuRef}
             initial={{ opacity: 0, scale: 0.9, y: -5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -5 }}
             style={{ top: Math.min(contextMenuPos.y, window.innerHeight - 180), left: Math.min(contextMenuPos.x, window.innerWidth - 160) }}
-            className="fixed z-[100] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/80 py-2 min-w-[160px] origin-top-left"
+            className={`fixed z-[100] backdrop-blur-xl rounded-2xl shadow-2xl border py-2 min-w-[160px] origin-top-left ${
+              darkMode ? 'bg-neu-dark-surface/95 border-white/10' : 'bg-white/95 border-gray-200/80'
+            }`}
           >
             <div className="px-3.5 py-2 mb-1">
               <p className="text-[10px] font-black text-violet-500/50 uppercase tracking-widest">{t.task}</p>
-              <p className="text-xs font-bold text-neu-text truncate">{todo.text}</p>
+              <p className={`text-xs font-bold truncate ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}>{todo.text}</p>
             </div>
-            <div className="h-px bg-gray-100/50 mx-2 mb-1" />
-            <MenuButton icon={<Clock size={13} />} text={t.changeDue} onClick={openDueModal} />
-            <MenuButton icon={<FileText size={13} />} text={t.editDetails} onClick={() => { setShowContextMenu(false); setDetailsText(todo.details || ''); setShowDetailsModal(true); }} />
-            <MenuButton icon={<Pencil size={13} />} text={t.rename} onClick={() => { setShowContextMenu(false); setEditText(todo.text); setIsEditing(true); }} />
-            <div className="h-px bg-gray-100/50 my-1 mx-2" />
-            <MenuButton icon={<Trash2 size={13} />} text={t.delete} color="text-red-500" onClick={() => { setShowContextMenu(false); onDelete(todo.id); }} />
+            <div className={`h-px mx-2 mb-1 ${darkMode ? 'bg-white/10' : 'bg-gray-100/50'}`} />
+            <MenuButton icon={<Clock size={13} />} text={t.changeDue} onClick={openDueModal} darkMode={darkMode} />
+            <MenuButton icon={<FileText size={13} />} text={t.editDetails} onClick={() => { setShowContextMenu(false); setDetailsText(todo.details || ''); setShowDetailsModal(true); }} darkMode={darkMode} />
+            <MenuButton icon={<Pencil size={13} />} text={t.rename} onClick={() => { setShowContextMenu(false); setEditText(todo.text); setIsEditing(true); }} darkMode={darkMode} />
+            <div className={`h-px my-1 mx-2 ${darkMode ? 'bg-white/10' : 'bg-gray-100/50'}`} />
+            <MenuButton icon={<Trash2 size={13} />} text={t.delete} color="text-red-500" onClick={() => { setShowContextMenu(false); onDelete(todo.id); }} darkMode={darkMode} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -389,24 +398,28 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[320px] bg-gradient-to-b from-white to-violet-50/30 rounded-3xl shadow-2xl border border-white/50 p-5 max-h-[calc(100vh-200px)] overflow-y-auto mx-4"
+              className={`w-full max-w-[320px] rounded-3xl shadow-2xl border p-5 max-h-[calc(100vh-200px)] overflow-y-auto mx-4 ${
+                darkMode ? 'bg-gradient-to-b from-neu-dark-surface to-neu-dark-base border-white/10' : 'bg-gradient-to-b from-white to-violet-50/30 border-white/50'
+              }`}
             >
               {/* 标题 */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
-                    <Clock size={16} className="text-violet-500" />
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${darkMode ? 'bg-violet-500/20' : 'bg-violet-100'}`}>
+                    <Clock size={16} className={darkMode ? 'text-violet-400' : 'text-violet-500'} />
                   </div>
-                  <h3 className="text-sm font-bold text-neu-text">{t.changeDue}</h3>
+                  <h3 className={`text-sm font-bold ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}>{t.changeDue}</h3>
                 </div>
-                <button onClick={() => setShowDueModal(false)} className="w-7 h-7 rounded-lg flex items-center justify-center text-neu-muted hover:text-neu-text hover:bg-gray-100 transition-colors cursor-pointer">
+                <button onClick={() => setShowDueModal(false)} className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+                  darkMode ? 'text-neu-dark-muted hover:text-neu-dark-text hover:bg-white/5' : 'text-neu-muted hover:text-neu-text hover:bg-gray-100'
+                }`}>
                   <X size={16} />
                 </button>
               </div>
 
               {/* 倒计时快捷按钮 */}
               <div className="mb-4">
-                <label className="block text-[10px] font-bold text-amber-600/70 uppercase tracking-wider mb-2">
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${darkMode ? 'text-amber-400/70' : 'text-amber-600/70'}`}>
                   {language === 'zh' ? '⏱ 倒计时' : '⏱ Countdown'}
                 </label>
                 <div className="grid grid-cols-4 gap-1.5">
@@ -425,7 +438,11 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                         setDateValue(formatDateForInput(d))
                         setTimeValue(formatTimeForInput(d))
                       }}
-                      className="py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200 transition-all cursor-pointer"
+                      className={`py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+                        darkMode
+                          ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30'
+                          : 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200'
+                      }`}
                     >
                       {opt.label}
                     </button>
@@ -447,7 +464,11 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                         setDateValue(formatDateForInput(d))
                         setTimeValue(formatTimeForInput(d))
                       }}
-                      className="py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200 transition-all cursor-pointer"
+                      className={`py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+                        darkMode
+                          ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30'
+                          : 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200'
+                      }`}
                     >
                       {opt.label}
                     </button>
@@ -457,7 +478,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
 
               {/* 快捷日期选项 */}
               <div className="mb-4">
-                <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-2">
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${darkMode ? 'text-neu-dark-muted/50' : 'text-neu-muted/50'}`}>
                   {language === 'zh' ? '📅 指定日期' : '📅 Set Date'}
                 </label>
                 <div className="grid grid-cols-4 gap-1.5">
@@ -479,6 +500,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                           "py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer",
                           dateValue === optValue
                             ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
+                            : darkMode
+                            ? 'bg-white/5 text-violet-400 hover:bg-white/10 border border-white/10'
                             : 'bg-white text-violet-600 hover:bg-violet-100 border border-violet-100'
                         )}
                       >
@@ -492,25 +515,33 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               {/* 日期和时间选择 - 并排布局 */}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-1.5">
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ${darkMode ? 'text-neu-dark-muted/50' : 'text-neu-muted/50'}`}>
                     {language === 'zh' ? '日期' : 'Date'}
                   </label>
                   <input
                     type="date"
                     value={dateValue}
                     onChange={(e) => setDateValue(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-semibold bg-white border border-violet-100 rounded-xl outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all cursor-pointer"
+                    className={`w-full px-3 py-2 text-xs font-semibold border rounded-xl outline-none transition-all cursor-pointer ${
+                      darkMode
+                        ? 'bg-white/5 border-white/10 text-neu-dark-text focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20'
+                        : 'bg-white border-violet-100 text-neu-text focus:border-violet-400 focus:ring-2 focus:ring-violet-100'
+                    }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-1.5">
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ${darkMode ? 'text-neu-dark-muted/50' : 'text-neu-muted/50'}`}>
                     {language === 'zh' ? '时间' : 'Time'}
                   </label>
                   <input
                     type="time"
                     value={timeValue}
                     onChange={(e) => setTimeValue(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-semibold bg-white border border-violet-100 rounded-xl outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all cursor-pointer"
+                    className={`w-full px-3 py-2 text-xs font-semibold border rounded-xl outline-none transition-all cursor-pointer ${
+                      darkMode
+                        ? 'bg-white/5 border-white/10 text-neu-dark-text focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20'
+                        : 'bg-white border-violet-100 text-neu-text focus:border-violet-400 focus:ring-2 focus:ring-violet-100'
+                    }`}
                   />
                 </div>
               </div>
@@ -527,6 +558,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
                         "py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer",
                         timeValue === time
                           ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
+                          : darkMode
+                          ? 'bg-white/5 text-violet-400 hover:bg-white/10 border border-white/10'
                           : 'bg-white text-violet-600 hover:bg-violet-100 border border-violet-100'
                       )}
                     >
@@ -538,10 +571,10 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
 
               {/* 预览 */}
               {dateValue && (
-                <div className="mb-4 p-3 bg-green-50 rounded-xl border border-green-100">
+                <div className={`mb-4 p-3 rounded-xl border ${darkMode ? 'bg-green-500/10 border-green-500/20' : 'bg-green-50 border-green-100'}`}>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[11px] font-semibold text-green-700">
+                    <span className={`text-[11px] font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
                       {new Date(dateValue + 'T' + timeValue).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -558,7 +591,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleClearDue}
-                  className="py-2.5 text-[11px] font-bold text-red-500 bg-white border border-red-100 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                  className={`py-2.5 text-[11px] font-bold rounded-xl transition-colors cursor-pointer ${
+                    darkMode ? 'text-red-400 bg-white/5 border border-red-500/30 hover:bg-red-500/10' : 'text-red-500 bg-white border border-red-100 hover:bg-red-50'
+                  }`}
                 >
                   {language === 'zh' ? '清除' : 'Clear'}
                 </button>
@@ -585,18 +620,45 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-white/50 overflow-hidden"
+              className={`w-full max-w-sm rounded-3xl shadow-xl border overflow-hidden ${
+                darkMode ? 'bg-neu-dark-surface border-white/10' : 'bg-white border-white/50'
+              }`}
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h3 className="text-sm font-bold text-neu-text">{t.editDetails}</h3>
-                <button onClick={() => setShowDetailsModal(false)} className="p-1 hover:bg-gray-100 rounded-full cursor-pointer"><X size={16} /></button>
+              <div className={`flex items-center justify-between px-5 py-4 border-b ${darkMode ? 'border-white/10' : 'border-gray-100'}`}>
+                <h3 className={`text-sm font-bold ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}>{t.editDetails}</h3>
+                <button onClick={() => setShowDetailsModal(false)} className={`p-1 rounded-full cursor-pointer ${darkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100'}`}><X size={16} /></button>
               </div>
               <div className="p-5 space-y-4">
-                <div><p className="text-[10px] text-neu-muted mb-1 font-bold uppercase">{t.task}</p><p className="text-sm font-semibold">{todo.text}</p></div>
-                <textarea autoFocus value={detailsText} onChange={(e) => setDetailsText(e.target.value)} placeholder={t.addDetails} className="w-full h-32 p-4 text-sm bg-gray-50 border-none rounded-2xl resize-none outline-none focus:bg-white focus:ring-2 focus:ring-violet-100 transition-all" />
+                <div>
+                  <p className={`text-[10px] mb-1 font-bold uppercase ${darkMode ? 'text-neu-dark-muted' : 'text-neu-muted'}`}>{t.task}</p>
+                  <p className={`text-sm font-semibold ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}>{todo.text}</p>
+                </div>
+                <textarea
+                  autoFocus
+                  value={detailsText}
+                  onChange={(e) => setDetailsText(e.target.value)}
+                  placeholder={t.addDetails}
+                  className={`w-full h-32 p-4 text-sm border-none rounded-2xl resize-none outline-none transition-all ${
+                    darkMode
+                      ? 'bg-white/5 text-neu-dark-text placeholder-neu-dark-muted/50 focus:bg-white/10 focus:ring-2 focus:ring-violet-500/20'
+                      : 'bg-gray-50 text-neu-text placeholder-neu-muted/50 focus:bg-white focus:ring-2 focus:ring-violet-100'
+                  }`}
+                />
                 <div className="flex gap-2">
-                  <button onClick={() => setShowDetailsModal(false)} className="flex-1 py-3 text-sm font-bold text-neu-muted bg-gray-100 rounded-2xl hover:bg-gray-200 transition-colors cursor-pointer">{t.cancel}</button>
-                  <button onClick={handleSaveDetails} className="flex-1 py-3 text-sm font-bold text-white bg-violet-500 rounded-2xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors cursor-pointer">{t.save}</button>
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className={`flex-1 py-3 text-sm font-bold rounded-2xl transition-colors cursor-pointer ${
+                      darkMode ? 'text-neu-dark-muted bg-white/5 hover:bg-white/10' : 'text-neu-muted bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    onClick={handleSaveDetails}
+                    className="flex-1 py-3 text-sm font-bold text-white bg-violet-500 rounded-2xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors cursor-pointer"
+                  >
+                    {t.save}
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -607,13 +669,14 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
   )
 }
 
-function MenuButton({ icon, text, onClick, color = "text-neu-text" }: { icon: React.ReactNode, text: string, onClick: () => void, color?: string }) {
+function MenuButton({ icon, text, onClick, color = "text-neu-text", darkMode = false }: { icon: React.ReactNode, text: string, onClick: () => void, color?: string, darkMode?: boolean }) {
   return (
     <button
       onClick={onClick}
       className={clsx(
-        "w-full px-3.5 py-2.5 text-left text-xs font-semibold hover:bg-violet-50 hover:text-violet-600 transition-all flex items-center gap-3 cursor-pointer",
-        color
+        "w-full px-3.5 py-2.5 text-left text-xs font-semibold transition-all flex items-center gap-3 cursor-pointer",
+        color,
+        darkMode ? 'hover:bg-white/5 hover:text-violet-400' : 'hover:bg-violet-50 hover:text-violet-600'
       )}
     >
       <span className="opacity-50 group-hover:opacity-100">{icon}</span>

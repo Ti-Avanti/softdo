@@ -6,8 +6,9 @@ const OPACITY_KEY = 'softdo-opacity'
 const LANGUAGE_KEY = 'softdo-language'
 const LAST_RUN_VERSION_KEY = 'softdo-version'
 const SKIP_VERSION_KEY = 'softdo-skip-version'
+const DARK_MODE_KEY = 'softdo-dark-mode'
 
-export const VERSION = 'v1.7.1'
+export const VERSION = 'v1.7.2'
 
 export interface UpdateInfo {
   hasUpdate: boolean
@@ -38,6 +39,12 @@ export function useAppSettings() {
   // 自动启动
   const [autoStart, setAutoStart] = useState(false)
 
+  // 暗色模式
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem(DARK_MODE_KEY)
+    return saved === 'true'
+  })
+
   // 更新信息
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
 
@@ -51,6 +58,11 @@ export function useAppSettings() {
   useEffect(() => {
     localStorage.setItem(OPACITY_KEY, opacity.toString())
   }, [opacity])
+
+  // 持久化暗色模式
+  useEffect(() => {
+    localStorage.setItem(DARK_MODE_KEY, darkMode.toString())
+  }, [darkMode])
 
   // 检查版本显示欢迎信息
   useEffect(() => {
@@ -113,6 +125,11 @@ export function useAppSettings() {
     if (newValue !== null) setAutoStart(newValue)
   }, [autoStart])
 
+  // 切换暗色模式
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev)
+  }, [])
+
   // 处理更新
   const handleUpdate = useCallback(() => {
     electronAPI.updates.openReleasePage()
@@ -150,6 +167,7 @@ export function useAppSettings() {
     language,
     isPinned,
     autoStart,
+    darkMode,
     updateInfo,
     showWelcome,
     showVersionToast,
@@ -164,6 +182,7 @@ export function useAppSettings() {
     toggleLanguage,
     togglePin,
     toggleAutoStart,
+    toggleDarkMode,
     handleUpdate,
     skipUpdate,
     checkForUpdates,

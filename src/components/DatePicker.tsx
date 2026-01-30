@@ -14,6 +14,7 @@ interface DatePickerProps {
   language: Language
   showQuickOptions?: boolean
   compact?: boolean
+  darkMode?: boolean
 }
 
 // Helper to format date as YYYY-MM-DD in local timezone
@@ -43,7 +44,8 @@ export default function DatePicker({
   onMinuteChange,
   language,
   showQuickOptions = true,
-  compact = false
+  compact = false,
+  darkMode = false
 }: DatePickerProps) {
   const t = getTranslation(language)
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -120,7 +122,7 @@ export default function DatePicker({
     const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
     const headers = weekdays.map(w => (
-      <div key={w} className="text-[10px] font-semibold text-neu-muted/40 text-center py-1">
+      <div key={w} className={`text-[10px] font-semibold text-center py-1 ${darkMode ? 'text-neu-dark-muted/40' : 'text-neu-muted/40'}`}>
         {w}
       </div>
     ))
@@ -152,9 +154,9 @@ export default function DatePicker({
           className={clsx(
             "w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-100 cursor-pointer relative z-20",
             selected ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30' :
-            today ? 'bg-violet-100 text-violet-600' :
-            past ? 'text-neu-muted/20 cursor-not-allowed' :
-            'text-neu-text/80 hover:bg-violet-50'
+            today ? (darkMode ? 'bg-violet-500/20 text-violet-400' : 'bg-violet-100 text-violet-600') :
+            past ? (darkMode ? 'text-neu-dark-muted/20 cursor-not-allowed' : 'text-neu-muted/20 cursor-not-allowed') :
+            darkMode ? 'text-neu-dark-text/80 hover:bg-violet-500/10' : 'text-neu-text/80 hover:bg-violet-50'
           )}
           style={{ pointerEvents: past ? 'none' : 'auto' }}
         >
@@ -197,6 +199,8 @@ export default function DatePicker({
                   "py-2 rounded-xl text-[11px] font-semibold transition-colors duration-100 cursor-pointer",
                   optSelected
                     ? 'bg-violet-500 text-white'
+                    : darkMode
+                    ? 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20'
                     : 'bg-violet-50 text-violet-600 hover:bg-violet-100'
                 )}
               >
@@ -214,17 +218,21 @@ export default function DatePicker({
           <button
             type="button"
             onClick={prevMonth}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-neu-muted/50 hover:bg-violet-50 hover:text-violet-500 transition-colors cursor-pointer"
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              darkMode ? 'text-neu-dark-muted/50 hover:bg-violet-500/10 hover:text-violet-400' : 'text-neu-muted/50 hover:bg-violet-50 hover:text-violet-500'
+            }`}
           >
             <ChevronLeft size={16} />
           </button>
-          <span className={clsx("font-semibold text-neu-text", compact ? "text-[10px]" : "text-sm")}>
+          <span className={clsx("font-semibold", compact ? "text-[10px]" : "text-sm", darkMode ? 'text-neu-dark-text' : 'text-neu-text')}>
             {calendarMonth.toLocaleDateString('en-US', { month: compact ? 'short' : 'long', year: 'numeric' })}
           </span>
           <button
             type="button"
             onClick={nextMonth}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-neu-muted/50 hover:bg-violet-50 hover:text-violet-500 transition-colors cursor-pointer"
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              darkMode ? 'text-neu-dark-muted/50 hover:bg-violet-500/10 hover:text-violet-400' : 'text-neu-muted/50 hover:bg-violet-50 hover:text-violet-500'
+            }`}
           >
             <ChevronRight size={16} />
           </button>
@@ -238,9 +246,9 @@ export default function DatePicker({
       </div>
 
       {/* Time Input */}
-      <div className={clsx("flex flex-col gap-3 pt-3 border-t border-violet-50", compact && "pt-2 gap-2")}>
+      <div className={clsx("flex flex-col gap-3 pt-3 border-t", compact && "pt-2 gap-2", darkMode ? 'border-white/10' : 'border-violet-50')}>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-neu-muted/40 uppercase tracking-wider">Time</span>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-neu-dark-muted/40' : 'text-neu-muted/40'}`}>Time</span>
           <div className="flex items-center gap-1.5">
             <input
               type="text"
@@ -258,9 +266,13 @@ export default function DatePicker({
                 }
               }}
               onBlur={(e) => onHourChange(normalizeHour(e.target.value))}
-              className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
+              className={`w-8 h-8 rounded-lg border text-center text-xs font-bold outline-none transition-colors ${
+                darkMode
+                  ? 'bg-violet-500/10 border-violet-500/30 text-violet-400 focus:border-violet-400 focus:bg-violet-500/20'
+                  : 'bg-violet-50/50 border-violet-100 text-violet-600 focus:border-violet-300 focus:bg-white'
+              }`}
             />
-            <span className="text-violet-300 font-bold">:</span>
+            <span className={`font-bold ${darkMode ? 'text-violet-500/50' : 'text-violet-300'}`}>:</span>
             <input
               ref={minuteInputRef}
               type="text"
@@ -270,7 +282,11 @@ export default function DatePicker({
               onFocus={(e) => e.target.select()}
               onChange={(e) => onMinuteChange(e.target.value.replace(/\D/g, '').slice(0, 2))}
               onBlur={(e) => onMinuteChange(normalizeMinute(e.target.value))}
-              className="w-8 h-8 rounded-lg bg-violet-50/50 border border-violet-100 text-center text-xs font-bold text-violet-600 outline-none focus:border-violet-300 focus:bg-white transition-colors"
+              className={`w-8 h-8 rounded-lg border text-center text-xs font-bold outline-none transition-colors ${
+                darkMode
+                  ? 'bg-violet-500/10 border-violet-500/30 text-violet-400 focus:border-violet-400 focus:bg-violet-500/20'
+                  : 'bg-violet-50/50 border-violet-100 text-violet-600 focus:border-violet-300 focus:bg-white'
+              }`}
             />
           </div>
         </div>
@@ -286,6 +302,8 @@ export default function DatePicker({
                   "px-2 py-1.5 rounded-[10px] text-[10px] font-semibold transition-all cursor-pointer",
                   hour === h && minute === '00'
                     ? 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
+                    : darkMode
+                    ? 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20'
                     : 'bg-violet-50/50 text-violet-500 hover:bg-violet-100'
                 )}
               >
@@ -298,17 +316,17 @@ export default function DatePicker({
 
       {/* Preview */}
       {hasDue && !compact && (
-        <div className="flex items-center justify-between py-2 px-3 bg-green-50 rounded-xl">
+        <div className={`flex items-center justify-between py-2 px-3 rounded-xl ${darkMode ? 'bg-green-500/10' : 'bg-green-50'}`}>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="text-[11px] font-semibold text-green-700">
+            <span className={`text-[11px] font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
               {formatSelectedDate()} {language === 'zh' ? ' ' : 'at'} {normalizeHour(hour)}:{normalizeMinute(minute)}
             </span>
           </div>
           <button
             type="button"
             onClick={() => { onSelectDate(''); onHourChange('12'); onMinuteChange('00') }}
-            className="text-[10px] font-medium text-green-600 hover:text-red-500 cursor-pointer"
+            className={`text-[10px] font-medium cursor-pointer ${darkMode ? 'text-green-400 hover:text-red-400' : 'text-green-600 hover:text-red-500'}`}
           >
             {language === 'zh' ? '清除' : 'Clear'}
           </button>

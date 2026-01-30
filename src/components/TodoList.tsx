@@ -13,6 +13,7 @@ interface TodoListProps {
   onUpdateDue: (id: string, due: Date | null) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
   language: Language;
+  darkMode?: boolean;
 }
 
 export default function TodoList({
@@ -23,7 +24,8 @@ export default function TodoList({
   onUpdateDetails,
   onUpdateDue,
   onReorder,
-  language
+  language,
+  darkMode = false
 }: TodoListProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [targetIndex, setTargetIndex] = useState<number | null>(null)
@@ -104,6 +106,7 @@ export default function TodoList({
               onUpdateDetails={onUpdateDetails}
               onUpdateDue={onUpdateDue}
               language={language}
+              darkMode={darkMode}
               onDragStart={() => handleDragStart(index)}
               onDragEnd={handleDragEnd}
               isDragging={draggedIndex === index}

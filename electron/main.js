@@ -17,7 +17,7 @@ const GITHUB_REPO = 'xxomega2077xx/softdo';
 // 移除未使用的常量: UPDATE_CHECK_KEY, SKIP_VERSION_KEY
 
 if (process.platform === 'win32') {
-  app.setAppUserModelId('com.softdo.app');
+  app.setAppUserModelId('com.todolist.app');
 }
 
 // Single instance lock - prevent multiple instances
@@ -152,8 +152,8 @@ function createTray() {
   tray = new Tray(trayIcon);
   
   const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Show SoftDo', 
+    {
+      label: 'Show ToDoList',
       click: () => {
         mainWindow?.show();
         mainWindow?.focus();
@@ -205,7 +205,7 @@ function createTray() {
     }
   ]);
 
-  tray.setToolTip('SoftDo - Your Tasks');
+  tray.setToolTip('ToDoList - Your Tasks');
   tray.setContextMenu(contextMenu);
 
   // Click to show/hide window
@@ -265,7 +265,7 @@ function runScheduler() {
         // Send Notification
         if (Notification.isSupported()) {
           new Notification({
-            title: 'SoftDo Reminder',
+            title: 'ToDoList Reminder',
             body: `Task "${todo.text}" ${message}`,
             icon: path.join(__dirname, '../build/icon.ico')
           }).show();

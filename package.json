@@ -1,7 +1,7 @@
 {
-  "name": "softdo",
+  "name": "todolist",
   "private": true,
-  "version": "1.7.1",
+  "version": "1.7.2",
   "author": {
     "name": "xxomega2077xx",
     "email": "xxomega2077xx@gmail.com"
@@ -47,8 +47,8 @@
     "wait-on": "^9.0.3"
   },
   "build": {
-    "appId": "com.softdo.app",
-    "productName": "SoftDo",
+    "appId": "com.todolist.app",
+    "productName": "ToDoList",
     "directories": {
       "output": "dist-electron"
     },
@@ -60,14 +60,14 @@
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
-      "artifactName": "SoftDo-${version}-Windows.${ext}"
+      "artifactName": "ToDoList-${version}-Windows.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SoftDo",
+      "shortcutName": "ToDoList",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerSidebar": "build/installerSidebar.png",
@@ -81,10 +81,10 @@
       ],
       "icon": "build/icon.png",
       "category": "public.app-category.productivity",
-      "artifactName": "SoftDo-${version}-macOS.${ext}"
+      "artifactName": "ToDoList-${version}-macOS.${ext}"
     },
     "dmg": {
-      "title": "SoftDo",
+      "title": "ToDoList",
       "icon": "build/icon.png"
     },
     "linux": {
@@ -93,7 +93,7 @@
         "deb"
       ],
       "icon": "build/icon.png",
-      "artifactName": "SoftDo-${version}-Linux.${ext}"
+      "artifactName": "ToDoList-${version}-Linux.${ext}"
     },
     "publish": {
       "provider": "github",

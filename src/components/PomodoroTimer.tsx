@@ -6,6 +6,7 @@ import type { Language } from '../i18n'
 
 interface PomodoroTimerProps {
   language: Language
+  darkMode?: boolean
 }
 
 type TimerMode = 'work' | 'break'
@@ -16,7 +17,7 @@ const STORAGE_KEY_BREAK = 'softdo-pomodoro-break'
 const DEFAULT_WORK_DURATION = 25 // minutes
 const DEFAULT_BREAK_DURATION = 5 // minutes
 
-export default function PomodoroTimer({ language }: PomodoroTimerProps) {
+export default function PomodoroTimer({ language, darkMode = false }: PomodoroTimerProps) {
   // 从 localStorage 读取自定义时间
   const [workDuration, setWorkDuration] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY_WORK)
@@ -130,8 +131,12 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
       <div className={clsx(
         "relative rounded-2xl p-4 border transition-all duration-500",
         mode === 'work'
-          ? "bg-gradient-to-br from-violet-50/80 to-purple-50/60 border-violet-100/50"
-          : "bg-gradient-to-br from-emerald-50/80 to-teal-50/60 border-emerald-100/50"
+          ? darkMode
+            ? "bg-gradient-to-br from-violet-900/30 to-purple-900/20 border-violet-500/20"
+            : "bg-gradient-to-br from-violet-50/80 to-purple-50/60 border-violet-100/50"
+          : darkMode
+            ? "bg-gradient-to-br from-emerald-900/30 to-teal-900/20 border-emerald-500/20"
+            : "bg-gradient-to-br from-emerald-50/80 to-teal-50/60 border-emerald-100/50"
       )}>
         {/* Progress Bar Background */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -155,6 +160,8 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                 "flex-1 py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all duration-300 cursor-pointer",
                 mode === 'work'
                   ? "bg-violet-500 text-white shadow-lg shadow-violet-500/30"
+                  : darkMode
+                  ? "bg-white/5 text-neu-dark-muted hover:bg-white/10"
                   : "bg-white/50 text-neu-muted hover:bg-white/80"
               )}
             >
@@ -166,6 +173,8 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                 "flex-1 py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5",
                 mode === 'break'
                   ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                  : darkMode
+                  ? "bg-white/5 text-neu-dark-muted hover:bg-white/10"
                   : "bg-white/50 text-neu-muted hover:bg-white/80"
               )}
             >
@@ -227,8 +236,12 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                 className={clsx(
                   "w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer",
                   mode === 'work'
-                    ? "text-violet-400 hover:bg-violet-100 hover:text-violet-600"
-                    : "text-emerald-400 hover:bg-emerald-100 hover:text-emerald-600"
+                    ? darkMode
+                      ? "text-violet-400/60 hover:bg-violet-500/20 hover:text-violet-400"
+                      : "text-violet-400 hover:bg-violet-100 hover:text-violet-600"
+                    : darkMode
+                      ? "text-emerald-400/60 hover:bg-emerald-500/20 hover:text-emerald-400"
+                      : "text-emerald-400 hover:bg-emerald-100 hover:text-emerald-600"
                 )}
               >
                 <Settings size={14} />
@@ -241,8 +254,12 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                 className={clsx(
                   "w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer",
                   mode === 'work'
-                    ? "text-violet-400 hover:bg-violet-100 hover:text-violet-600"
-                    : "text-emerald-400 hover:bg-emerald-100 hover:text-emerald-600"
+                    ? darkMode
+                      ? "text-violet-400/60 hover:bg-violet-500/20 hover:text-violet-400"
+                      : "text-violet-400 hover:bg-violet-100 hover:text-violet-600"
+                    : darkMode
+                      ? "text-emerald-400/60 hover:bg-emerald-500/20 hover:text-emerald-400"
+                      : "text-emerald-400 hover:bg-emerald-100 hover:text-emerald-600"
                 )}
               >
                 <RotateCcw size={14} />
@@ -301,14 +318,16 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[260px] bg-white rounded-3xl shadow-2xl border border-white/50 overflow-hidden"
+              className={`w-full max-w-[260px] rounded-3xl shadow-2xl border overflow-hidden ${
+                darkMode ? 'bg-neu-dark-surface border-white/10' : 'bg-white border-white/50'
+              }`}
             >
               <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-neu-text">{t.settings}</h3>
+                  <h3 className={`text-sm font-bold ${darkMode ? 'text-neu-dark-text' : 'text-neu-text'}`}>{t.settings}</h3>
                   <button
                     onClick={() => setShowSettings(false)}
-                    className="text-neu-muted hover:text-neu-text p-1 cursor-pointer rounded-full hover:bg-gray-100"
+                    className={`p-1 cursor-pointer rounded-full ${darkMode ? 'text-neu-dark-muted hover:text-neu-dark-text hover:bg-white/5' : 'text-neu-muted hover:text-neu-text hover:bg-gray-100'}`}
                   >
                     <X size={14} />
                   </button>
@@ -324,9 +343,13 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                       max="120"
                       value={editWorkMin}
                       onChange={(e) => setEditWorkMin(e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm font-bold text-center bg-violet-50 border border-violet-100 rounded-xl outline-none focus:ring-2 focus:ring-violet-200"
+                      className={`flex-1 px-3 py-2 text-sm font-bold text-center border rounded-xl outline-none focus:ring-2 ${
+                        darkMode
+                          ? 'bg-violet-500/10 border-violet-500/30 text-neu-dark-text focus:ring-violet-500/20'
+                          : 'bg-violet-50 border-violet-100 text-neu-text focus:ring-violet-200'
+                      }`}
                     />
-                    <span className="text-xs text-neu-muted font-medium">{t.minutes}</span>
+                    <span className={`text-xs font-medium ${darkMode ? 'text-neu-dark-muted' : 'text-neu-muted'}`}>{t.minutes}</span>
                   </div>
                 </div>
 
@@ -340,9 +363,13 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                       max="60"
                       value={editBreakMin}
                       onChange={(e) => setEditBreakMin(e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm font-bold text-center bg-emerald-50 border border-emerald-100 rounded-xl outline-none focus:ring-2 focus:ring-emerald-200"
+                      className={`flex-1 px-3 py-2 text-sm font-bold text-center border rounded-xl outline-none focus:ring-2 ${
+                        darkMode
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-neu-dark-text focus:ring-emerald-500/20'
+                          : 'bg-emerald-50 border-emerald-100 text-neu-text focus:ring-emerald-200'
+                      }`}
                     />
-                    <span className="text-xs text-neu-muted font-medium">{t.minutes}</span>
+                    <span className={`text-xs font-medium ${darkMode ? 'text-neu-dark-muted' : 'text-neu-muted'}`}>{t.minutes}</span>
                   </div>
                 </div>
 
@@ -350,7 +377,9 @@ export default function PomodoroTimer({ language }: PomodoroTimerProps) {
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     onClick={() => setShowSettings(false)}
-                    className="py-2.5 text-[11px] font-bold text-neu-muted bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                    className={`py-2.5 text-[11px] font-bold rounded-xl transition-colors cursor-pointer ${
+                      darkMode ? 'text-neu-dark-muted bg-white/5 hover:bg-white/10' : 'text-neu-muted bg-gray-100 hover:bg-gray-200'
+                    }`}
                   >
                     {t.cancel}
                   </button>

@@ -9,7 +9,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom Scrollbar */
+  /* Custom Scrollbar - Light Mode */
   ::-webkit-scrollbar {
     width: 4px;
   }
@@ -22,6 +22,25 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(139, 92, 246, 0.3);
+  }
+
+  /* Dark Mode Scrollbar */
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 92, 246, 0.3);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(139, 92, 246, 0.5);
+  }
+
+  /* Dark mode date/time input styling */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0);
+  }
+
+  .dark-picker input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark-picker input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
   }
 }
 
