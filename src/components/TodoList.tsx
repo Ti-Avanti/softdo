@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { Todo } from '../App'
+import type { Todo } from '../hooks/useTodos'
 import TodoItem from './TodoItem'
 import type { Language } from '../i18n'
 
@@ -15,33 +15,25 @@ interface TodoListProps {
   language: Language;
 }
 
-export default function TodoList({ 
-  todos, 
-  onToggle, 
-  onDelete, 
-  onRename, 
-  onUpdateDetails, 
+export default function TodoList({
+  todos,
+  onToggle,
+  onDelete,
+  onRename,
+  onUpdateDetails,
   onUpdateDue,
-  onReorder, 
-  language 
+  onReorder,
+  language
 }: TodoListProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [targetIndex, setTargetIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  const handleDragStart = (index: number) => {
     setDraggedIndex(index)
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', index.toString())
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5'
-    }
   }
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1'
-    }
+  const handleDragEnd = () => {
     if (draggedIndex !== null && targetIndex !== null && draggedIndex !== targetIndex) {
       onReorder(draggedIndex, targetIndex)
     }
@@ -65,23 +57,20 @@ export default function TodoList({
             key={todo.id}
             layout
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0, 
+            animate={{
+              opacity: draggedIndex === index ? 0.5 : 1,
+              y: 0,
               scale: draggedIndex === index ? 1.02 : 1
             }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ 
-              duration: 0.2, 
-              type: "spring", 
-              stiffness: 500, 
-              damping: 30 
+            transition={{
+              duration: 0.2,
+              type: "spring",
+              stiffness: 500,
+              damping: 30
             }}
-            draggable
-            onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, index)}
-            onDragEnd={(e) => handleDragEnd(e as unknown as React.DragEvent)}
             onDragOver={(e) => handleDragOver(e as unknown as React.DragEvent, index)}
-            className="relative cursor-grab active:cursor-grabbing"
+            className="relative"
           >
             {/* Drop Indicator - Top */}
             <AnimatePresence>
@@ -94,7 +83,7 @@ export default function TodoList({
                 />
               )}
             </AnimatePresence>
-            
+
             {/* Drop Indicator - Bottom */}
             <AnimatePresence>
               {targetIndex === index && draggedIndex !== null && draggedIndex < index && (
@@ -106,15 +95,18 @@ export default function TodoList({
                 />
               )}
             </AnimatePresence>
-            
-            <TodoItem 
-              todo={todo} 
-              onToggle={onToggle} 
+
+            <TodoItem
+              todo={todo}
+              onToggle={onToggle}
               onDelete={onDelete}
               onRename={onRename}
               onUpdateDetails={onUpdateDetails}
               onUpdateDue={onUpdateDue}
               language={language}
+              onDragStart={() => handleDragStart(index)}
+              onDragEnd={handleDragEnd}
+              isDragging={draggedIndex === index}
             />
           </motion.div>
         ))}

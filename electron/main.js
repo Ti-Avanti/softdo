@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell, Notification, screen } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
@@ -8,13 +8,13 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let tray = null;
+let isQuitting = false; // 标记应用是否正在退出
 import { readFileSync } from 'fs';
 
 const packageJson = JSON.parse(readFileSync(path.join(__dirname, '../package.json')));
 const CURRENT_VERSION = packageJson.version;
 const GITHUB_REPO = 'xxomega2077xx/softdo';
-const UPDATE_CHECK_KEY = 'softdo-skip-update';
-const SKIP_VERSION_KEY = 'softdo-skip-version';
+// 移除未使用的常量: UPDATE_CHECK_KEY, SKIP_VERSION_KEY
 
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.softdo.app');
@@ -28,10 +28,22 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', () => {
     // Someone tried to run a second instance, focus our window instead
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore();
-      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.show();
       mainWindow.focus();
+      // 确保窗口在屏幕可见范围内
+      const bounds = mainWindow.getBounds();
+      const displays = screen.getAllDisplays();
+      const isVisible = displays.some(display => {
+        const { x, y, width, height } = display.bounds;
+        return bounds.x >= x && bounds.x < x + width && bounds.y >= y && bounds.y < y + height;
+      });
+      if (!isVisible) {
+        mainWindow.center();
+      }
+    } else {
+      createWindow();
     }
   });
 }
@@ -66,6 +78,14 @@ function createWindow() {
     minWidth: 320,
     minHeight: 480,
     icon: path.join(__dirname, '../build/icon.png')
+  });
+
+  // 阻止窗口关闭，改为隐藏到托盘
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
   });
 
   // IPC handlers for window controls
@@ -207,30 +227,7 @@ ipcMain.on('update-notification-schedule', (event, todos) => {
   scheduledTodos = todos.filter(t => t.dueTime && t.notify);
 });
 
-function checkNotifications() {
-  const now = new Date();
-  
-  scheduledTodos.forEach(todo => {
-    if (!todo.dueTime) return;
-    const due = new Date(todo.dueTime);
-    const diff = (due - now) / 1000; // seconds
-
-    // Thresholds: 24h (86400), 1h (3600), 30m (1800), 5m (300), 0m (0)
-    // We need a mechanism to not repeat notifications.
-    // For simplicity in this version, we'll check if it's "close enough" and hasn't been fired recently?
-    // Actually, renderer can send "next notification time" or main can track "last notified".
-    // Let's use a simpler approach: Check if we just crossed a threshold.
-    // To do this reliably without state, we might need a "lastCheckTime".
-    
-    // Better approach: User wanted "Windows Level Notification".
-    // We will check strict ranges. e.g. if diff is between 0 and 10s -> Show "Due Now".
-    // We need to store state "notified_due", "notified_5m", etc.
-    // But main process is stateless regarding todo ID details usually.
-    // Let's attach state to the todo list in main memory.
-  });
-}
-
-// Robust Notification System using `node-schedule` logic or simple polling with state tracking
+// Robust Notification System
 let notificationState = new Map(); // id -> { lastNotifiedStage: string }
 
 function runScheduler() {
@@ -296,17 +293,15 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // On Windows, quit the app when all windows are closed
-  // User can use tray icon to show/hide instead
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // 不在这里退出，因为我们有托盘图标
+  // 用户可以通过托盘图标重新显示窗口
 });
 
 // Update window creation to handle "Run at startup" logic if needed (handled by builder)
 // ... (previous logic)
 
 app.on('before-quit', () => {
+  isQuitting = true; // 标记正在退出
   clearInterval(notificationTimer);
   tray?.destroy();
 });

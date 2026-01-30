@@ -1,52 +1,79 @@
-import { Check, Trash2, Clock, Pencil, FileText, X, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, Trash2, Clock, Pencil, FileText, X, GripVertical } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import type { Todo } from '../App'
 import { getTranslation } from '../i18n'
 import type { Language } from '../i18n'
+import type { Todo } from '../hooks/useTodos'
 
 interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRename: (id: string, text: string) => void;
-  onUpdateDetails: (id: string, details: string) => void;
-  onUpdateDue: (id: string, due: Date | null) => void;
-  language: Language;
+  todo: Todo
+  onToggle: (id: string) => void
+  onDelete: (id: string) => void
+  onRename: (id: string, text: string) => void
+  onUpdateDetails: (id: string, details: string) => void
+  onUpdateDue: (id: string, due: Date | null) => void
+  language: Language
+  onDragStart?: () => void
+  onDragEnd?: () => void
+  isDragging?: boolean
 }
 
 interface TimeInfo {
-  text: string;
-  urgent: boolean;
-  overdue: boolean;
-  secondsLeft?: number;
+  text: string
+  urgent: boolean
+  overdue: boolean
+  progress: number
 }
 
-function formatTimeRemaining(dueTime: Date, t: any): TimeInfo {
+function calculateProgress(createdAt: Date, dueTime: Date): number {
+  const now = new Date()
+  const total = dueTime.getTime() - createdAt.getTime()
+  const elapsed = now.getTime() - createdAt.getTime()
+  if (total <= 0) return 100
+  return Math.min(100, Math.max(0, (elapsed / total) * 100))
+}
+
+function formatTimeRemaining(createdAt: Date, dueTime: Date, t: ReturnType<typeof getTranslation>): TimeInfo {
   const now = new Date()
   const diff = dueTime.getTime() - now.getTime()
-  
+  const progress = calculateProgress(createdAt, dueTime)
+
   if (diff < 0) {
     const mins = Math.abs(Math.floor(diff / 60000))
-    if (mins < 60) return { text: `${mins}m ${t.overdue}`, urgent: true, overdue: true }
+    if (mins < 60) return { text: `${mins}m ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
     const hours = Math.floor(mins / 60)
-    if (hours < 24) return { text: `${hours}h ${t.overdue}`, urgent: true, overdue: true }
-    return { text: `${Math.floor(hours / 24)}d ${t.overdue}`, urgent: true, overdue: true }
+    if (hours < 24) return { text: `${hours}h ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
+    return { text: `${Math.floor(hours / 24)}d ${t.overdue}`, urgent: true, overdue: true, progress: 100 }
   }
-  
+
   const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, secondsLeft: seconds }
-  
+  if (seconds < 60) return { text: `${seconds}s`, urgent: true, overdue: false, progress }
+
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return { text: `${mins}m ${t.left}`, urgent: mins < 30, overdue: false }
+  if (mins < 60) return { text: `${mins}m ${t.left}`, urgent: mins < 30, overdue: false, progress }
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return { text: `${hours}h ${mins % 60}m`, urgent: hours < 2, overdue: false }
+  if (hours < 24) return { text: `${hours}h ${mins % 60}m`, urgent: hours < 2, overdue: false, progress }
   const days = Math.floor(hours / 24)
-  return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false }
+  return { text: `${days}d ${hours % 24}h`, urgent: false, overdue: false, progress }
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateDetails, onUpdateDue, language }: TodoItemProps) {
+// 格式化日期为 YYYY-MM-DD
+function formatDateForInput(date: Date): string {
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// 格式化时间为 HH:MM
+function formatTimeForInput(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateDetails, onUpdateDue, language, onDragStart, onDragEnd }: TodoItemProps) {
   const t = getTranslation(language)
   const [, setTick] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
@@ -55,40 +82,36 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 })
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [detailsText, setDetailsText] = useState(todo.details || '')
-  
-  // Due Picker State
-  const [showDueModal, setShowDueModal] = useState(false)
-  const [selectedDate, setSelectedDate] = useState('')
-  const [hour, setHour] = useState('12')
-  const [minute, setMinute] = useState('00')
-  const [calendarMonth, setCalendarMonth] = useState(new Date())
 
-  
+  // Due Picker State - 使用原生 input
+  const [showDueModal, setShowDueModal] = useState(false)
+  const [dateValue, setDateValue] = useState('')
+  const [timeValue, setTimeValue] = useState('12:00')
+
   const menuRef = useRef<HTMLDivElement>(null)
-  
-  // Initialize due picker state when opening
+
+  // 打开 deadline 弹窗时初始化值
   const openDueModal = () => {
     if (todo.dueTime) {
       const d = new Date(todo.dueTime)
-      setSelectedDate(formatDateLocal(d))
-      setHour(d.getHours().toString().padStart(2, '0'))
-      setMinute(d.getMinutes().toString().padStart(2, '0'))
-      setCalendarMonth(new Date(d.getFullYear(), d.getMonth(), 1))
+      setDateValue(formatDateForInput(d))
+      setTimeValue(formatTimeForInput(d))
     } else {
-      setSelectedDate('')
-      setHour('12')
-      setMinute('00')
-      setCalendarMonth(new Date())
+      // 默认设置为今天
+      const today = new Date()
+      setDateValue(formatDateForInput(today))
+      setTimeValue('12:00')
     }
     setShowDueModal(true)
     setShowContextMenu(false)
   }
 
+  // 保存 deadline
   const handleSaveDue = () => {
-    if (selectedDate) {
-      const h = Math.min(23, Math.max(0, parseInt(hour) || 0))
-      const m = Math.min(59, Math.max(0, parseInt(minute) || 0))
-      const due = new Date(`${selectedDate}T${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+    if (dateValue) {
+      const [year, month, day] = dateValue.split('-').map(Number)
+      const [hours, minutes] = timeValue.split(':').map(Number)
+      const due = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0)
       onUpdateDue(todo.id, due)
     } else {
       onUpdateDue(todo.id, null)
@@ -96,18 +119,20 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
     setShowDueModal(false)
   }
 
-  // Update every second if urgent
-  useEffect(() => {
-    if (!todo.dueTime) return
-    const now = new Date()
-    const diff = new Date(todo.dueTime).getTime() - now.getTime()
-    if (diff > 0 && diff < 60000) {
-        const interval = setInterval(() => setTick(t => t + 1), 1000)
-        return () => clearInterval(interval)
-    }
-  }, [todo.dueTime])
+  // 清除 deadline
+  const handleClearDue = () => {
+    onUpdateDue(todo.id, null)
+    setShowDueModal(false)
+  }
 
-  // Close context menu on click outside
+  // 每秒更新进度
+  useEffect(() => {
+    if (!todo.dueTime || todo.completed) return
+    const interval = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(interval)
+  }, [todo.dueTime, todo.completed])
+
+  // 点击外部关闭右键菜单
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -131,76 +156,86 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
     setShowDetailsModal(false)
   }
 
-  const timeInfo = todo.dueTime ? formatTimeRemaining(new Date(todo.dueTime), t) : null
+  const createdAt = todo.createdAt ? new Date(todo.createdAt) : new Date()
+  const timeInfo = todo.dueTime ? formatTimeRemaining(createdAt, new Date(todo.dueTime), t) : null
+  const hasDeadline = todo.dueTime && !todo.completed
 
-  // Calendar Helpers (adapted from TodoInput)
-  const formatDateLocal = (d: Date) => {
-    const year = d.getFullYear()
-    const month = (d.getMonth() + 1).toString().padStart(2, '0')
-    const day = d.getDate().toString().padStart(2, '0')
-    return `${year}-${month}-${day}`
+  // 进度条颜色
+  const getProgressColors = (progress: number, overdue: boolean) => {
+    if (overdue) return { elapsed: 'bg-gradient-to-r from-red-400 to-red-500', remaining: 'bg-red-100/50' }
+    if (progress > 80) return { elapsed: 'bg-gradient-to-r from-amber-400 to-orange-500', remaining: 'bg-amber-50/50' }
+    if (progress > 50) return { elapsed: 'bg-gradient-to-r from-yellow-400 to-amber-500', remaining: 'bg-yellow-50/50' }
+    return { elapsed: 'bg-gradient-to-r from-violet-400 to-purple-500', remaining: 'bg-violet-50/30' }
   }
 
-  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-  const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay()
-  
-  const isPast = (day: number) => {
-    const d = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day)
-    const today = new Date(); today.setHours(0,0,0,0)
-    return d < today
-  }
+  const progressColors = timeInfo ? getProgressColors(timeInfo.progress, timeInfo.overdue) : null
 
-  const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(calendarMonth)
-    const firstDay = getFirstDayOfMonth(calendarMonth)
-    const days = []
-    const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-
-    const headers = weekdays.map(w => (
-      <div key={w} className="text-[10px] font-semibold text-neu-muted/40 text-center py-1">{w}</div>
-    ))
-
-    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />)
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const past = isPast(day)
-      const selected = selectedDate === formatDateLocal(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day))
-      const today = formatDateLocal(new Date()) === formatDateLocal(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day))
-      
-      days.push(
-        <button
-          key={day}
-          type="button"
-          disabled={past}
-          onClick={() => setSelectedDate(formatDateLocal(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day)))}
-          className={clsx(
-            "w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-100 cursor-pointer",
-            selected ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30' :
-            today ? 'bg-violet-100 text-violet-600' :
-            past ? 'text-neu-muted/20 cursor-not-allowed' : 'text-neu-text/80 hover:bg-violet-50'
-          )}
-        >
-          {day}
-        </button>
-      )
-    }
-    return { headers, days }
-  }
-
-  const { headers, days } = renderCalendar()
-  
   return (
     <>
       <motion.div
         layout
         onContextMenu={handleContextMenu}
         className={clsx(
-          'group flex items-center gap-2 p-3.5 bg-white/60 hover:bg-white/80 backdrop-blur-sm border border-white/50 rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden cursor-default',
-          todo.completed && 'opacity-60 bg-white/40'
+          'group flex items-center gap-2 p-3.5 backdrop-blur-sm border rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden cursor-default',
+          todo.completed && 'opacity-60',
+          hasDeadline ? 'bg-transparent border-white/30' : 'bg-white/60 hover:bg-white/80 border-white/50'
         )}
       >
+        {/* Deadline Progress Bar */}
+        {hasDeadline && timeInfo && (
+          <>
+            <motion.div
+              className={clsx("absolute inset-0 rounded-[24px]", progressColors?.remaining)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            />
+            <motion.div
+              className={clsx(
+                "absolute top-0 left-0 h-full rounded-l-[24px]",
+                progressColors?.elapsed,
+                timeInfo.progress >= 100 && "rounded-r-[24px]"
+              )}
+              initial={{ width: 0 }}
+              animate={{ width: `${timeInfo.progress}%` }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+              style={{ opacity: timeInfo.overdue ? 0.4 : 0.25 }}
+            />
+            {timeInfo.progress < 100 && !timeInfo.overdue && (
+              <motion.div
+                className="absolute top-0 h-full w-1 rounded-full"
+                initial={{ left: 0 }}
+                animate={{ left: `${timeInfo.progress}%` }}
+                transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+                style={{
+                  background: timeInfo.progress > 80
+                    ? 'linear-gradient(to bottom, rgba(251, 191, 36, 0.8), rgba(249, 115, 22, 0.8))'
+                    : timeInfo.progress > 50
+                    ? 'linear-gradient(to bottom, rgba(250, 204, 21, 0.8), rgba(245, 158, 11, 0.8))'
+                    : 'linear-gradient(to bottom, rgba(167, 139, 250, 0.8), rgba(139, 92, 246, 0.8))',
+                  boxShadow: timeInfo.progress > 80
+                    ? '0 0 12px rgba(249, 115, 22, 0.6)'
+                    : timeInfo.progress > 50
+                    ? '0 0 12px rgba(245, 158, 11, 0.6)'
+                    : '0 0 12px rgba(139, 92, 246, 0.6)',
+                  transform: 'translateX(-50%)'
+                }}
+              />
+            )}
+          </>
+        )}
+
         {/* Drag Handle */}
-        <div className="w-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-grab active:cursor-grabbing text-neu-muted/30 hover:text-violet-400 -ml-1">
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move'
+            e.dataTransfer.setData('text/plain', '')
+            onDragStart?.()
+          }}
+          onDragEnd={() => onDragEnd?.()}
+          className="relative z-10 w-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-grab active:cursor-grabbing text-neu-muted/30 hover:text-violet-400 -ml-1"
+        >
           <GripVertical size={14} />
         </div>
 
@@ -209,15 +244,15 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           layout={false}
           whileTap={{ scale: 0.95 }}
           onClick={() => onToggle(todo.id)}
-          className="relative cursor-pointer flex-shrink-0 group/checkbox"
+          className="relative z-10 cursor-pointer flex-shrink-0 group/checkbox"
         >
           <motion.div
             layout
             className={clsx(
               "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border",
-              todo.completed 
-                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_2px_8px_rgba(139,92,246,0.4)]' 
-                : 'border-neu-muted/20 bg-white/50 backdrop-blur-md shadow-inner'
+              todo.completed
+                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_2px_8px_rgba(139,92,246,0.4)]'
+                : 'border-neu-muted/20 bg-white/70 backdrop-blur-md shadow-inner'
             )}
           >
             <motion.div
@@ -230,82 +265,91 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
         </motion.button>
 
         {/* Task Text & Due Time */}
-        <div className="flex-1 min-w-0 overflow-hidden relative">
+        <div className="relative z-10 flex-1 min-w-0 overflow-hidden">
           {isEditing ? (
-              <form 
-                  onSubmit={(e) => { e.preventDefault(); if (editText.trim()) { onRename(todo.id, editText.trim()); setIsEditing(false); } }}
-                  className="w-full"
-              >
-                  <input
-                      type="text"
-                      autoFocus
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      onBlur={() => { if (editText.trim()) onRename(todo.id, editText.trim()); else setEditText(todo.text); setIsEditing(false); }}
-                      className="w-full bg-transparent border-none outline-none text-sm font-medium text-neu-text p-0 m-0"
-                  />
-              </form>
+            <form
+              onSubmit={(e) => { e.preventDefault(); if (editText.trim()) { onRename(todo.id, editText.trim()); setIsEditing(false); } }}
+              className="w-full"
+            >
+              <input
+                type="text"
+                autoFocus
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onBlur={() => { if (editText.trim()) onRename(todo.id, editText.trim()); else setEditText(todo.text); setIsEditing(false); }}
+                className="w-full bg-transparent border-none outline-none text-sm font-medium text-neu-text p-0 m-0"
+              />
+            </form>
           ) : (
-              <div className="relative group/text">
-                <motion.span 
-                  animate={{ color: todo.completed ? 'rgba(99, 110, 114, 0.4)' : 'rgba(45, 52, 54, 1)' }}
-                  className="block text-sm font-medium select-none truncate"
-                >
-                  {todo.text}
-                </motion.span>
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: todo.completed ? 1 : 0 }}
-                  style={{ originX: 0 }}
-                  className="absolute top-1/2 left-0 right-0 h-[1px] bg-neu-text/60 pointer-events-none"
-                />
-              </div>
+            <div className="relative group/text">
+              <motion.span
+                animate={{ color: todo.completed ? 'rgba(99, 110, 114, 0.4)' : 'rgba(45, 52, 54, 1)' }}
+                className={clsx(
+                  "block text-sm font-medium select-none truncate",
+                  hasDeadline && timeInfo?.overdue && "text-red-700"
+                )}
+              >
+                {todo.text}
+              </motion.span>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: todo.completed ? 1 : 0 }}
+                style={{ originX: 0 }}
+                className="absolute top-1/2 left-0 right-0 h-[1px] bg-neu-text/60 pointer-events-none"
+              />
+            </div>
           )}
-          
+
           <AnimatePresence>
             {timeInfo && !todo.completed && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                 className={clsx(
-                  "flex items-center gap-2 mt-1 text-xs font-medium",
-                  timeInfo.overdue ? 'text-red-500' : timeInfo.urgent ? 'text-amber-500' : 'text-neu-muted/50'
+                  "flex items-center gap-2 mt-1 text-xs font-semibold",
+                  timeInfo.overdue ? 'text-red-600' : timeInfo.urgent ? 'text-amber-600' : 'text-neu-muted/60'
                 )}
               >
                 <div className="flex items-center gap-1">
                   <Clock size={10} />
                   <span>{timeInfo.text}</span>
+                  {hasDeadline && (
+                    <span className="ml-1 opacity-60">({Math.round(timeInfo.progress)}%)</span>
+                  )}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Action Buttons (Hover) */}
+        {/* Action Buttons */}
         {!todo.completed && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="relative z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <motion.button
-                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                onClick={openDueModal}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50 transition-all cursor-pointer"
-                title={t.changeDue}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); openDueModal(); }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80 transition-all cursor-pointer"
+              title={t.changeDue}
             >
-                <Clock size={14} />
+              <Clock size={14} />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                onClick={() => { setEditText(todo.text); setIsEditing(true); }}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50 transition-all cursor-pointer"
-                title={t.rename}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); setEditText(todo.text); setIsEditing(true); }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-violet-500 hover:bg-violet-50/80 transition-all cursor-pointer"
+              title={t.rename}
             >
-                <Pencil size={14} />
+              <Pencil size={14} />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                onClick={() => onDelete(todo.id)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-red-400 hover:bg-red-50 transition-all cursor-pointer"
-                title={t.delete}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onDelete(todo.id); }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-neu-muted/30 hover:text-red-400 hover:bg-red-50/80 transition-all cursor-pointer"
+              title={t.delete}
             >
-                <Trash2 size={14} />
+              <Trash2 size={14} />
             </motion.button>
           </div>
         )}
@@ -320,24 +364,21 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             style={{ top: Math.min(contextMenuPos.y, window.innerHeight - 180), left: Math.min(contextMenuPos.x, window.innerWidth - 160) }}
             className="fixed z-[100] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/80 py-2 min-w-[160px] origin-top-left"
           >
-            {/* Header to fill space */}
             <div className="px-3.5 py-2 mb-1">
-               <p className="text-[10px] font-black text-violet-500/50 uppercase tracking-widest">{t.task}</p>
-               <p className="text-xs font-bold text-neu-text truncate">{todo.text}</p>
+              <p className="text-[10px] font-black text-violet-500/50 uppercase tracking-widest">{t.task}</p>
+              <p className="text-xs font-bold text-neu-text truncate">{todo.text}</p>
             </div>
             <div className="h-px bg-gray-100/50 mx-2 mb-1" />
-            
             <MenuButton icon={<Clock size={13} />} text={t.changeDue} onClick={openDueModal} />
             <MenuButton icon={<FileText size={13} />} text={t.editDetails} onClick={() => { setShowContextMenu(false); setDetailsText(todo.details || ''); setShowDetailsModal(true); }} />
             <MenuButton icon={<Pencil size={13} />} text={t.rename} onClick={() => { setShowContextMenu(false); setEditText(todo.text); setIsEditing(true); }} />
-            
             <div className="h-px bg-gray-100/50 my-1 mx-2" />
             <MenuButton icon={<Trash2 size={13} />} text={t.delete} color="text-red-500" onClick={() => { setShowContextMenu(false); onDelete(todo.id); }} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Due Date Modal */}
+      {/* Due Date Modal - 优化版 */}
       <AnimatePresence>
         {showDueModal && (
           <motion.div
@@ -348,38 +389,185 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[260px] bg-white rounded-3xl shadow-2xl border border-white/50 overflow-hidden"
+              className="w-full max-w-[320px] bg-gradient-to-b from-white to-violet-50/30 rounded-3xl shadow-2xl border border-white/50 p-5 max-h-[85vh] overflow-y-auto"
             >
-              <div className="p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                   <h3 className="text-xs font-bold text-neu-text">{t.changeDue}</h3>
-                   <button onClick={() => setShowDueModal(false)} className="text-neu-muted hover:text-neu-text p-1"><X size={14}/></button>
-                </div>
-                
-                {/* Simplified Calendar adapted from TodoInput */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronLeft size={14}/></button>
-                    <span className="text-[10px] font-bold">{calendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))} className="p-1 hover:bg-violet-50 rounded-lg text-neu-muted"><ChevronRight size={14}/></button>
+              {/* 标题 */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
+                    <Clock size={16} className="text-violet-500" />
                   </div>
-                  <div className="grid grid-cols-7 gap-y-0.5 justify-items-center">
-                    {headers}
-                    {days}
+                  <h3 className="text-sm font-bold text-neu-text">{t.changeDue}</h3>
+                </div>
+                <button onClick={() => setShowDueModal(false)} className="w-7 h-7 rounded-lg flex items-center justify-center text-neu-muted hover:text-neu-text hover:bg-gray-100 transition-colors cursor-pointer">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* 倒计时快捷按钮 */}
+              <div className="mb-4">
+                <label className="block text-[10px] font-bold text-amber-600/70 uppercase tracking-wider mb-2">
+                  {language === 'zh' ? '⏱ 倒计时' : '⏱ Countdown'}
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { label: '15m', minutes: 15 },
+                    { label: '30m', minutes: 30 },
+                    { label: '1h', minutes: 60 },
+                    { label: '2h', minutes: 120 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => {
+                        const d = new Date()
+                        d.setMinutes(d.getMinutes() + opt.minutes)
+                        setDateValue(formatDateForInput(d))
+                        setTimeValue(formatTimeForInput(d))
+                      }}
+                      className="py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200 transition-all cursor-pointer"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 mt-1.5">
+                  {[
+                    { label: '3h', minutes: 180 },
+                    { label: '6h', minutes: 360 },
+                    { label: '12h', minutes: 720 },
+                    { label: '24h', minutes: 1440 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => {
+                        const d = new Date()
+                        d.setMinutes(d.getMinutes() + opt.minutes)
+                        setDateValue(formatDateForInput(d))
+                        setTimeValue(formatTimeForInput(d))
+                      }}
+                      className="py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-600 hover:from-amber-100 hover:to-orange-100 border border-amber-200 transition-all cursor-pointer"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 快捷日期选项 */}
+              <div className="mb-4">
+                <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-2">
+                  {language === 'zh' ? '📅 指定日期' : '📅 Set Date'}
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { label: language === 'zh' ? '今天' : 'Today', days: 0 },
+                    { label: language === 'zh' ? '明天' : 'Tmrw', days: 1 },
+                    { label: language === 'zh' ? '3天' : '3D', days: 3 },
+                    { label: language === 'zh' ? '一周' : '1W', days: 7 },
+                  ].map((opt) => {
+                    const d = new Date()
+                    d.setDate(d.getDate() + opt.days)
+                    const optValue = formatDateForInput(d)
+                    return (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        onClick={() => setDateValue(optValue)}
+                        className={clsx(
+                          "py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer",
+                          dateValue === optValue
+                            ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
+                            : 'bg-white text-violet-600 hover:bg-violet-100 border border-violet-100'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 日期和时间选择 - 并排布局 */}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-1.5">
+                    {language === 'zh' ? '日期' : 'Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={dateValue}
+                    onChange={(e) => setDateValue(e.target.value)}
+                    className="w-full px-3 py-2 text-xs font-semibold bg-white border border-violet-100 rounded-xl outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-neu-muted/50 uppercase tracking-wider mb-1.5">
+                    {language === 'zh' ? '时间' : 'Time'}
+                  </label>
+                  <input
+                    type="time"
+                    value={timeValue}
+                    onChange={(e) => setTimeValue(e.target.value)}
+                    className="w-full px-3 py-2 text-xs font-semibold bg-white border border-violet-100 rounded-xl outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 快捷时间选项 */}
+              <div className="mb-4">
+                <div className="grid grid-cols-4 gap-1.5">
+                  {['09:00', '12:00', '18:00', '21:00'].map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => setTimeValue(time)}
+                      className={clsx(
+                        "py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer",
+                        timeValue === time
+                          ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
+                          : 'bg-white text-violet-600 hover:bg-violet-100 border border-violet-100'
+                      )}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 预览 */}
+              {dateValue && (
+                <div className="mb-4 p-3 bg-green-50 rounded-xl border border-green-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[11px] font-semibold text-green-700">
+                      {new Date(dateValue + 'T' + timeValue).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </div>
                 </div>
-                
-                {/* Time picker */}
-                <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-100">
-                   <input type="text" maxLength={2} value={hour} onFocus={e => e.target.select()} onChange={e => setHour(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-8 h-8 rounded-lg bg-gray-50 text-center text-xs font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
-                   <span className="font-bold text-gray-300">:</span>
-                   <input type="text" maxLength={2} value={minute} onFocus={e => e.target.select()} onChange={e => setMinute(e.target.value.replace(/\D/g,'').slice(0,2))} className="w-8 h-8 rounded-lg bg-gray-50 text-center text-xs font-bold text-violet-600 outline-none focus:bg-white border border-transparent focus:border-violet-200" />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                   <button onClick={() => { setSelectedDate(''); onUpdateDue(todo.id, null); setShowDueModal(false); }} className="py-1.5 text-[10px] font-bold text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">Clear</button>
-                   <button onClick={handleSaveDue} className="py-1.5 text-[10px] font-bold text-white bg-violet-500 rounded-xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors">Save</button>
-                </div>
+              )}
+
+              {/* 按钮 */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleClearDue}
+                  className="py-2.5 text-[11px] font-bold text-red-500 bg-white border border-red-100 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                >
+                  {language === 'zh' ? '清除' : 'Clear'}
+                </button>
+                <button
+                  onClick={handleSaveDue}
+                  className="py-2.5 text-[11px] font-bold text-white bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl hover:from-violet-600 hover:to-purple-600 shadow-lg shadow-violet-500/30 transition-all cursor-pointer"
+                >
+                  {language === 'zh' ? '保存' : 'Save'}
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -401,14 +589,14 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h3 className="text-sm font-bold text-neu-text">{t.editDetails}</h3>
-                <button onClick={() => setShowDetailsModal(false)} className="p-1 hover:bg-gray-100 rounded-full"><X size={16} /></button>
+                <button onClick={() => setShowDetailsModal(false)} className="p-1 hover:bg-gray-100 rounded-full cursor-pointer"><X size={16} /></button>
               </div>
               <div className="p-5 space-y-4">
                 <div><p className="text-[10px] text-neu-muted mb-1 font-bold uppercase">{t.task}</p><p className="text-sm font-semibold">{todo.text}</p></div>
                 <textarea autoFocus value={detailsText} onChange={(e) => setDetailsText(e.target.value)} placeholder={t.addDetails} className="w-full h-32 p-4 text-sm bg-gray-50 border-none rounded-2xl resize-none outline-none focus:bg-white focus:ring-2 focus:ring-violet-100 transition-all" />
                 <div className="flex gap-2">
-                  <button onClick={() => setShowDetailsModal(false)} className="flex-1 py-3 text-sm font-bold text-neu-muted bg-gray-100 rounded-2xl hover:bg-gray-200 transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveDetails} className="flex-1 py-3 text-sm font-bold text-white bg-violet-500 rounded-2xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors">{t.save}</button>
+                  <button onClick={() => setShowDetailsModal(false)} className="flex-1 py-3 text-sm font-bold text-neu-muted bg-gray-100 rounded-2xl hover:bg-gray-200 transition-colors cursor-pointer">{t.cancel}</button>
+                  <button onClick={handleSaveDetails} className="flex-1 py-3 text-sm font-bold text-white bg-violet-500 rounded-2xl hover:bg-violet-600 shadow-lg shadow-violet-500/20 transition-colors cursor-pointer">{t.save}</button>
                 </div>
               </div>
             </motion.div>

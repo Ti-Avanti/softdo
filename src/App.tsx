@@ -1,156 +1,54 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Minus, Pin, CircleCheck, Trash2, Bell, ArrowRight, Droplet, Sparkles, Power, Globe } from 'lucide-react'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
+import PomodoroTimer from './components/PomodoroTimer'
 import { getTranslation } from './i18n'
-import type { Language } from './i18n'
+import { useTodos, useAppSettings, useWindowResize, electronAPI } from './hooks'
 
-export interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-  dueTime?: Date | null;
-  details?: string;
-}
-
-interface UpdateInfo {
-  hasUpdate: boolean;
-  latestVersion: string;
-  releaseUrl: string;
-  releaseNotes: string;
-}
-
-const STORAGE_KEY = 'softdo-todos'
-const SKIP_VERSION_KEY = 'softdo-skip-version'
-const OPACITY_KEY = 'softdo-opacity'
-const LAST_RUN_VERSION_KEY = 'softdo-version'
-const VERSION = 'v1.6.2'
-const LANGUAGE_KEY = 'softdo-language'
+// Re-export Todo type for other components
+export type { Todo } from './hooks/useTodos'
 
 function App() {
-  const [todos, setTodos] = useState<Todo[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        return parsed.map((t: Todo) => ({
-          ...t,
-          dueTime: t.dueTime ? new Date(t.dueTime) : null
-        }))
-      }
-    } catch { /* Ignore parse errors */ }
-    return []
-  })
-  
-  const [opacity, setOpacity] = useState(() => {
-    const saved = localStorage.getItem(OPACITY_KEY)
-    return saved ? parseFloat(saved) : 1
-  })
-  
-  const [isPinned, setIsPinned] = useState(false)
-  const [showOpacityControl, setShowOpacityControl] = useState(false)
-  const [, setTick] = useState(0)
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
-  const [showWelcome, setShowWelcome] = useState(false)
-  const [showVersionToast, setShowVersionToast] = useState(false)
-  const opacityRef = useRef<HTMLDivElement>(null)
-  const [autoStart, setAutoStart] = useState(false)
-  const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem(LANGUAGE_KEY)
-    return (saved === 'zh' || saved === 'en') ? saved : 'en'
-  })
+  const {
+    todos,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    renameTodo,
+    updateDetails,
+    updateDue,
+    reorderTodos,
+    clearAll,
+    pendingCount,
+  } = useTodos()
+
+  const {
+    opacity,
+    language,
+    isPinned,
+    autoStart,
+    updateInfo,
+    showWelcome,
+    showVersionToast,
+    VERSION,
+    setOpacity,
+    toggleLanguage,
+    togglePin,
+    toggleAutoStart,
+    handleUpdate,
+    skipUpdate,
+    checkForUpdates,
+    closeWelcome,
+    closeUpdate,
+  } = useAppSettings()
+
+  const { handleResizeStart } = useWindowResize()
+
   const t = getTranslation(language)
-  
-  // Resize logic
-  const isResizing = useRef(false)
-  const resizeDir = useRef<string>('')
-  const startPos = useRef({ x: 0, y: 0 })
-  const startBounds = useRef({ x: 0, y: 0, w: 0, h: 0 })
-
-  const handleResizeStart = (e: React.MouseEvent, dir: string) => {
-    e.preventDefault()
-    isResizing.current = true
-    resizeDir.current = dir
-    startPos.current = { x: e.screenX, y: e.screenY }
-    startBounds.current = { 
-      x: window.screenX, 
-      y: window.screenY, 
-      w: window.outerWidth, 
-      h: window.outerHeight 
-    }
-    
-    document.body.style.cursor = dir === 'se' ? 'nwse-resize' : 'nesw-resize'
-    document.body.style.userSelect = 'none'
-  }
-
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current) return
-
-    requestAnimationFrame(() => {
-      const deltaX = e.screenX - startPos.current.x
-      const deltaY = e.screenY - startPos.current.y
-      const dir = resizeDir.current
-      
-      let newW = startBounds.current.w
-      let newH = startBounds.current.h
-      let newX = startBounds.current.x
-      const newY = startBounds.current.y // Top doesn't change for bottom resize
-
-      // Calculate dimensions based on direction
-      if (dir === 'se') {
-        newW = Math.max(320, startBounds.current.w + deltaX)
-        newH = Math.max(480, startBounds.current.h + deltaY)
-      } else if (dir === 'sw') {
-        // For left resize: width changes inverse to delta, X changes by delta
-        // We need to ensuring width >= minWidth
-        const rawW = startBounds.current.w - deltaX
-        if (rawW >= 320) {
-            newW = rawW
-            newX = startBounds.current.x + deltaX
-        } else {
-            // Clamped
-            newW = 320
-            newX = startBounds.current.x + (startBounds.current.w - 320)
-        }
-        newH = Math.max(480, startBounds.current.h + deltaY)
-      }
-
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { ipcRenderer } = require('electron')
-        ipcRenderer.send('resize-window', { 
-            width: newW, 
-            height: newH,
-            x: newX,
-            y: newY
-        })
-      } catch { /* Not in Electron */ }
-    })
-  }, [])
-
-  const handleResizeEnd = useCallback(() => {
-    isResizing.current = false
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
-  }, [])
-
-  useEffect(() => {
-    document.addEventListener('mousemove', handleResizeMove)
-    document.addEventListener('mouseup', handleResizeEnd)
-    return () => {
-      document.removeEventListener('mousemove', handleResizeMove)
-      document.removeEventListener('mouseup', handleResizeEnd)
-    }
-  }, [handleResizeMove, handleResizeEnd])
-  
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }, [todos])
-
-  useEffect(() => {
-    localStorage.setItem(OPACITY_KEY, opacity.toString())
-  }, [opacity])
+  const [showOpacityControl, setShowOpacityControl] = useState(false)
+  const opacityRef = useRef<HTMLDivElement>(null)
 
   // Click outside to close opacity control
   useEffect(() => {
@@ -163,206 +61,42 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    const interval = setInterval(() => setTick(t => t + 1), 60000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Check version for welcome message
-  useEffect(() => {
-    const lastRunVersion = localStorage.getItem(LAST_RUN_VERSION_KEY)
-    if (lastRunVersion !== VERSION) {
-      setTimeout(() => setShowWelcome(true), 1000)
-      localStorage.setItem(LAST_RUN_VERSION_KEY, VERSION)
-    }
-  }, [])
-
-  // Check auto-launch status on mount
-  useEffect(() => {
-    const checkAutoLaunch = async () => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { ipcRenderer } = require('electron');
-        const enabled = await ipcRenderer.invoke('get-auto-launch');
-        setAutoStart(enabled);
-      } catch { /* Not in Electron */ }
-    };
-    checkAutoLaunch();
-  }, [])
-
-  // Auto-update check
-  useEffect(() => {
-    const checkUpdate = async () => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { ipcRenderer } = require('electron');
-        const result = await ipcRenderer.invoke('check-for-updates');
-        
-        // Ensure strictly newer version
-        const currentVerNum = VERSION.replace('v', '');
-        const latestVerNum = result.latestVersion.replace('v', '');
-
-        if (result.hasUpdate && latestVerNum !== currentVerNum) {
-          const skippedVersion = localStorage.getItem(SKIP_VERSION_KEY);
-          if (skippedVersion !== result.latestVersion) {
-            setTimeout(() => {
-              setUpdateInfo(result);
-            }, 5000);
-          }
-        }
-      } catch { /* Not in Electron or network error */ }
-    }
-
-    checkUpdate();
-  }, [])
-
-  const addTodo = (text: string, dueTime?: Date | null) => {
-    setTodos(prev => [...prev, { id: crypto.randomUUID(), text, completed: false, dueTime }])
-  }
-
-  const toggleTodo = (id: string) => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t))
-  }
-
-  const deleteTodo = (id: string) => {
-    setTodos(prev => prev.filter(t => t.id !== id))
-  }
-  
-  const renameTodo = (id: string, newText: string) => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, text: newText } : t))
-  }
-
-  const updateDetails = (id: string, details: string) => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, details } : t))
-  }
-
-  const reorderTodos = (fromIndex: number, toIndex: number) => {
-    setTodos(prev => {
-      const newTodos = [...prev]
-      const [removed] = newTodos.splice(fromIndex, 1)
-      newTodos.splice(toIndex, 0, removed)
-      return newTodos
-    })
-  }
-
-  const updateDue = (id: string, dueTime: Date | null) => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, dueTime } : t))
-  }
-
-  const clearAll = () => {
-    setTodos([])
-  }
-
-  // Sync with main process for notifications
-  // Using simplified logic now - notifying for all tasks with due time if needed, or disabled.
-  // User asked to "delete bell function". I will stop sending updates to main process for now.
-  // Or send all? For now, I'll comment it out to disable notifications cleanly.
-  /*
-  useEffect(() => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ipcRenderer } = require('electron')
-      ipcRenderer.send('update-notification-schedule', todos)
-    } catch {  }
-  }, [todos])
-  */
-
-  const closeApp = () => window.close()
-  const minimizeApp = () => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.send('minimize-window'); // Uses minimize-to-tray if configured
-    } catch { /* Not in Electron */ }
-  }
-
-  const togglePin = () => {
-    setIsPinned(!isPinned);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.send('toggle-always-on-top', !isPinned);
-    } catch { /* Not in Electron */ }
-  }
-
-  const handleUpdate = () => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.send('open-release-page');
-    } catch { /* Not in Electron */ }
-    setUpdateInfo(null);
-  }
-
-  const skipUpdate = () => {
-    if (updateInfo) {
-      localStorage.setItem(SKIP_VERSION_KEY, updateInfo.latestVersion);
-      setUpdateInfo(null);
-    }
-  }
-
-  const closeUpdate = () => setUpdateInfo(null)
-  const closeWelcome = () => setShowWelcome(false)
-
-  const toggleAutoStart = async () => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ipcRenderer } = require('electron');
-      const newValue = await ipcRenderer.invoke('set-auto-launch', !autoStart);
-      setAutoStart(newValue);
-    } catch { /* Not in Electron */ }
-  }
+  const closeApp = () => electronAPI.window.closeToTray()
+  const minimizeApp = () => electronAPI.window.minimize()
 
   return (
     <div className="h-screen w-screen p-4 bg-transparent flex flex-col">
       {/* Main Container */}
-      <div 
+      <div
         className="relative flex-1 w-full rounded-[28px] overflow-hidden flex flex-col border border-white/60 transition-colors duration-200 backdrop-blur-3xl"
         style={{ backgroundColor: `rgba(240, 238, 248, ${opacity})` }}
       >
-        
+
         {/* Window Controls */}
         <div className="flex items-center justify-between px-5 py-4 app-drag-region relative z-50">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3"
           >
-            <motion.div 
+            <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-purple-600" 
+              className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-purple-600"
             />
             <span className="text-sm font-bold text-neu-text tracking-wide">SoftDo</span>
 
-            <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                   // Mock version check
-                   try {
-                     // eslint-disable-next-line @typescript-eslint/no-require-imports
-                     const { ipcRenderer } = require('electron');
-                     ipcRenderer.invoke('check-for-updates').then((result: any) => {
-                        if (!result.hasUpdate) {
-                            setShowVersionToast(true);
-                            setTimeout(() => setShowVersionToast(false), 3000);
-                        } else {
-                            setUpdateInfo(result);
-                        }
-                     });
-                   } catch {
-                       setShowVersionToast(true);
-                       setTimeout(() => setShowVersionToast(false), 3000);
-                   }
-                }}
-                className="app-no-drag text-[10px] font-black text-neu-text/30 tracking-wider hover:text-violet-500 transition-colors cursor-pointer relative z-50 px-1" 
-                title="Click to check for updates"
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={checkForUpdates}
+              className="app-no-drag text-[10px] font-black text-neu-text/30 tracking-wider hover:text-violet-500 transition-colors cursor-pointer relative z-50 px-1"
+              title="Click to check for updates"
             >
-                {VERSION}
+              {VERSION}
             </motion.button>
           </motion.div>
-          
+
           <div className="flex items-center gap-1.5 app-no-drag">
             {/* Opacity Control */}
             <div className="relative" ref={opacityRef}>
@@ -376,7 +110,7 @@ function App() {
               >
                 <Droplet size={11} fill={showOpacityControl ? 'currentColor' : 'none'} strokeWidth={3} />
               </motion.button>
-              
+
               <AnimatePresence>
                 {showOpacityControl && (
                   <motion.div
@@ -398,10 +132,10 @@ function App() {
                       onChange={(e) => setOpacity(parseFloat(e.target.value))}
                       className="w-full h-1.5 bg-violet-100 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500 [&::-webkit-slider-thumb]:shadow-sm outline-none"
                     />
-                    
+
                     {/* Divider */}
                     <div className="w-full h-px bg-gray-100" />
-                    
+
                     {/* Auto Start Toggle */}
                     <button
                       onClick={toggleAutoStart}
@@ -412,23 +146,19 @@ function App() {
                         <span className="text-[10px] font-medium text-neu-muted">{t.autoStart}</span>
                       </div>
                       <div className={`w-7 h-4 rounded-full transition-colors ${autoStart ? 'bg-violet-500' : 'bg-gray-200'} flex items-center px-0.5`}>
-                        <motion.div 
+                        <motion.div
                           animate={{ x: autoStart ? 12 : 0 }}
                           className="w-3 h-3 bg-white rounded-full shadow-sm"
                         />
                       </div>
                     </button>
-                    
+
                     {/* Divider */}
                     <div className="w-full h-px bg-gray-100" />
-                    
+
                     {/* Language Toggle */}
                     <button
-                      onClick={() => {
-                        const newLang = language === 'en' ? 'zh' : 'en'
-                        setLanguage(newLang)
-                        localStorage.setItem(LANGUAGE_KEY, newLang)
-                      }}
+                      onClick={toggleLanguage}
                       className="w-full flex items-center justify-between px-1 py-1 rounded-lg hover:bg-violet-50 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
@@ -456,7 +186,7 @@ function App() {
             >
               <Pin size={11} fill={isPinned ? 'currentColor' : 'none'} strokeWidth={3} />
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.85 }}
@@ -465,7 +195,7 @@ function App() {
             >
               <Minus size={11} strokeWidth={3} />
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.15, backgroundColor: 'rgba(255,107,107,0.1)' }}
               whileTap={{ scale: 0.85 }}
@@ -487,7 +217,7 @@ function App() {
               className="px-5 overflow-hidden flex-shrink-0 relative z-40"
             >
               <div className="bg-gradient-to-r from-violet-50 to-purple-50/80 rounded-xl p-3 flex items-start gap-3 border border-violet-100 shadow-sm relative overflow-hidden">
-                 {/* Sparkle decoration */}
+                {/* Sparkle decoration */}
                 <div className="absolute top-0 right-0 p-2 text-violet-200 opacity-20 transform translate-x-1/3 -translate-y-1/3">
                   <Sparkles size={80} strokeWidth={1} />
                 </div>
@@ -498,7 +228,7 @@ function App() {
                 <div className="flex-1 min-w-0 z-10">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-violet-900 tracking-tight">{t.welcome} {VERSION}!</span>
-                    <button onClick={closeWelcome} className="text-violet-400 hover:text-violet-600 transition-colors p-0.5 hover:bg-violet-100/50 rounded-full">
+                    <button onClick={closeWelcome} className="text-violet-400 hover:text-violet-600 transition-colors p-0.5 hover:bg-violet-100/50 rounded-full cursor-pointer">
                       <X size={12} />
                     </button>
                   </div>
@@ -527,7 +257,7 @@ function App() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-violet-900">{t.newVersion} {updateInfo.latestVersion}</span>
-                    <button onClick={closeUpdate} className="text-violet-400 hover:text-violet-600 transition-colors">
+                    <button onClick={closeUpdate} className="text-violet-400 hover:text-violet-600 transition-colors cursor-pointer">
                       <X size={12} />
                     </button>
                   </div>
@@ -535,16 +265,16 @@ function App() {
                     {t.updateAvailable}
                   </p>
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={handleUpdate}
-                      className="flex-1 bg-violet-600 text-white text-[10px] font-medium py-1.5 rounded-lg hover:bg-violet-700 transition-colors flex items-center justify-center gap-1"
+                      className="flex-1 bg-violet-600 text-white text-[10px] font-medium py-1.5 rounded-lg hover:bg-violet-700 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <span>{t.update}</span>
                       <ArrowRight size={10} />
                     </button>
-                    <button 
+                    <button
                       onClick={skipUpdate}
-                      className="px-3 bg-white text-violet-500 text-[10px] font-medium py-1.5 rounded-lg border border-violet-100 hover:bg-violet-50 transition-colors"
+                      className="px-3 bg-white text-violet-500 text-[10px] font-medium py-1.5 rounded-lg border border-violet-100 hover:bg-violet-50 transition-colors cursor-pointer"
                     >
                       {t.skip}
                     </button>
@@ -555,9 +285,14 @@ function App() {
           )}
         </AnimatePresence>
 
+        {/* Pomodoro Timer - Fixed at top, doesn't scroll */}
+        <div className="px-5 pb-3 flex-shrink-0 relative z-40">
+          <PomodoroTimer language={language} />
+        </div>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 pb-5 relative z-30 [scrollbar-gutter:stable]">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -567,42 +302,41 @@ function App() {
             <header className="flex items-start justify-between">
               <div className="space-y-1 min-w-0 flex-1">
                 <h1 className="text-2xl font-bold text-neu-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{t.todayTasks}</h1>
-                <motion.p 
-                  key={todos.filter(t => !t.completed).length}
+                <motion.p
+                  key={pendingCount}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-neu-muted text-xs font-medium tracking-wide"
                 >
-                  {todos.filter(todo => !todo.completed).length} {t.remaining}
+                  {pendingCount} {t.remaining}
                 </motion.p>
               </div>
-              
+
               {/* Clear All Button */}
               <div className="h-8 flex items-center">
-                 <AnimatePresence>
-                    {todos.length > 0 && (
+                <AnimatePresence>
+                  {todos.length > 0 && (
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={clearAll}
-                        className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer border border-red-100/50 shadow-sm ml-4 whitespace-nowrap"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={clearAll}
+                      className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer border border-red-100/50 shadow-sm ml-4 whitespace-nowrap"
                     >
-                        <Trash2 size={12} strokeWidth={2.5} />
-                        <span>{t.clearAll}</span>
+                      <Trash2 size={12} strokeWidth={2.5} />
+                      <span>{t.clearAll}</span>
                     </motion.button>
-                    )}
+                  )}
                 </AnimatePresence>
               </div>
             </header>
-            
-            {/* Input & List */}
+
             {/* Input & List */}
             <div className="space-y-4">
               <TodoInput onAdd={addTodo} language={language} />
-              
+
               <AnimatePresence mode="popLayout" initial={false}>
                 {todos.length === 0 ? (
                   <motion.div
@@ -613,7 +347,7 @@ function App() {
                     transition={{ duration: 0.3, type: "spring", bounce: 0 }}
                     className="text-center py-12 overflow-hidden"
                   >
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
@@ -621,7 +355,7 @@ function App() {
                     >
                       <CircleCheck size={24} className="text-violet-400" />
                     </motion.div>
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.15 }}
@@ -639,9 +373,9 @@ function App() {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
-                    <TodoList 
-                      todos={todos} 
-                      onToggle={toggleTodo} 
+                    <TodoList
+                      todos={todos}
+                      onToggle={toggleTodo}
                       onDelete={deleteTodo}
                       onRename={renameTodo}
                       onUpdateDetails={updateDetails}
@@ -656,57 +390,57 @@ function App() {
           </motion.div>
         </div>
 
-        {/* Glow Resize Handle (Bottom-Right) */}
         {/* Resize Handles */}
         {/* Bottom Right */}
-        <div 
+        <div
           className="absolute bottom-0 right-0 w-8 h-8 flex items-end justify-end z-50 group app-no-drag cursor-nwse-resize"
           onMouseDown={(e) => handleResizeStart(e, 'se')}
         >
-          <div 
+          <div
             className="absolute bottom-0 right-0 w-full h-full rounded-tl-3xl transition-all duration-300 ease-out opacity-0 group-hover:opacity-100"
-            style={{ 
-              background: `radial-gradient(circle at bottom right, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)` 
+            style={{
+              background: `radial-gradient(circle at bottom right, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)`
             }}
           />
         </div>
 
         {/* Bottom Left */}
-        <div 
+        <div
           className="absolute bottom-0 left-0 w-8 h-8 flex items-end justify-start z-50 group app-no-drag cursor-nesw-resize"
           onMouseDown={(e) => handleResizeStart(e, 'sw')}
         >
-          <div 
+          <div
             className="absolute bottom-0 left-0 w-full h-full rounded-tr-3xl transition-all duration-300 ease-out opacity-0 group-hover:opacity-100"
-            style={{ 
-              background: `radial-gradient(circle at bottom left, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)` 
+            style={{
+              background: `radial-gradient(circle at bottom left, rgba(139, 92, 246, ${Math.max(0.4, opacity * 0.8)}) 0%, transparent 70%)`
             }}
           />
         </div>
+
         {/* Version Check Toast */}
         <AnimatePresence>
           {showVersionToast && (
             <motion.div
-                initial={{ opacity: 0, x: 20, y: 0 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
-                className="absolute bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3 bg-white/90 backdrop-blur-xl border border-violet-100/50 rounded-2xl shadow-xl shadow-violet-500/10 overflow-hidden"
+              initial={{ opacity: 0, x: 20, y: 0 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+              className="absolute bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3 bg-white/90 backdrop-blur-xl border border-violet-100/50 rounded-2xl shadow-xl shadow-violet-500/10 overflow-hidden"
             >
-                {/* Progress Bar (Purple Line Reducing) */}
-                <motion.div 
-                    initial={{ width: '100%' }}
-                    animate={{ width: '0%' }}
-                    transition={{ duration: 3, ease: 'linear' }}
-                    className="absolute bottom-0 left-0 h-[2px] bg-violet-500"
-                />
-                
-                <div className="p-1.5 bg-green-50 rounded-full text-green-500">
-                    <CircleCheck size={16} />
-                </div>
-                <div>
-                   <h3 className="text-xs font-bold text-neu-text">{t.upToDate}</h3>
-                   <p className="text-[10px] text-neu-muted">{t.latestVersion} {VERSION}</p>
-                </div>
+              {/* Progress Bar */}
+              <motion.div
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: 3, ease: 'linear' }}
+                className="absolute bottom-0 left-0 h-[2px] bg-violet-500"
+              />
+
+              <div className="p-1.5 bg-green-50 rounded-full text-green-500">
+                <CircleCheck size={16} />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-neu-text">{t.upToDate}</h3>
+                <p className="text-[10px] text-neu-muted">{t.latestVersion} {VERSION}</p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
