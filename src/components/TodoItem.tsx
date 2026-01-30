@@ -383,13 +383,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
         {showDueModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[110] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[110] flex items-start justify-center pt-[180px]"
             onClick={() => setShowDueModal(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: -20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[320px] bg-gradient-to-b from-white to-violet-50/30 rounded-3xl shadow-2xl border border-white/50 p-5 max-h-[85vh] overflow-y-auto"
+              className="w-full max-w-[320px] bg-gradient-to-b from-white to-violet-50/30 rounded-3xl shadow-2xl border border-white/50 p-5 max-h-[calc(100vh-200px)] overflow-y-auto mx-4"
             >
               {/* 标题 */}
               <div className="flex items-center justify-between mb-4">

@@ -48,6 +48,7 @@ function App() {
 
   const t = getTranslation(language)
   const [showOpacityControl, setShowOpacityControl] = useState(false)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
   const opacityRef = useRef<HTMLDivElement>(null)
 
   // Click outside to close opacity control
@@ -322,7 +323,7 @@ function App() {
                       exit={{ opacity: 0, scale: 0.9 }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={clearAll}
+                      onClick={() => setShowClearConfirm(true)}
                       className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer border border-red-100/50 shadow-sm ml-4 whitespace-nowrap"
                     >
                       <Trash2 size={12} strokeWidth={2.5} />
@@ -416,6 +417,52 @@ function App() {
             }}
           />
         </div>
+
+        {/* Clear All Confirm Modal */}
+        <AnimatePresence>
+          {showClearConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[120] flex items-center justify-center p-4"
+              onClick={() => setShowClearConfirm(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-[280px] bg-white rounded-3xl shadow-2xl border border-white/50 p-5"
+              >
+                <div className="flex flex-col items-center text-center mb-5">
+                  <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-3">
+                    <Trash2 size={24} className="text-red-500" />
+                  </div>
+                  <h3 className="text-sm font-bold text-neu-text mb-1">
+                    {language === 'zh' ? '确认清空' : 'Confirm Clear'}
+                  </h3>
+                  <p className="text-xs text-neu-muted">
+                    {language === 'zh'
+                      ? `确定要清空所有 ${todos.length} 个任务吗？此操作无法撤销。`
+                      : `Are you sure you want to clear all ${todos.length} tasks? This cannot be undone.`
+                    }
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    className="py-2.5 text-[11px] font-bold text-neu-muted bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                  >
+                    {language === 'zh' ? '取消' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={() => { clearAll(); setShowClearConfirm(false); }}
+                    className="py-2.5 text-[11px] font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 shadow-lg shadow-red-500/30 transition-colors cursor-pointer"
+                  >
+                    {language === 'zh' ? '确认清空' : 'Clear All'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Version Check Toast */}
         <AnimatePresence>
