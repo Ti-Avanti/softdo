@@ -240,25 +240,119 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           <GripVertical size={14} />
         </div>
 
-        {/* Checkbox */}
+        {/* Checkbox with enhanced completion animation */}
         <motion.button
           layout={false}
           whileTap={{ scale: 0.95 }}
           onClick={() => onToggle(todo.id)}
           className="relative z-10 cursor-pointer flex-shrink-0 group/checkbox"
         >
+          {/* Enhanced celebration effects */}
+          <AnimatePresence>
+            {todo.completed && (
+              <>
+                {/* Outer ring burst */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 2.5, 3], opacity: [0, 0.6, 0] }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="absolute inset-0 rounded-full border-2 border-violet-400"
+                />
+
+                {/* Inner glow pulse */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 2, 2.5], opacity: [0, 0.4, 0] }}
+                  transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-500"
+                />
+
+                {/* Star burst particles - 12 particles in a circle */}
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={`star-${i}`}
+                    initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+                    animate={{
+                      scale: [0, 1.2, 0.8, 0],
+                      x: Math.cos((i * 30 * Math.PI) / 180) * 35,
+                      y: Math.sin((i * 30 * Math.PI) / 180) * 35,
+                      opacity: [1, 1, 0.8, 0],
+                    }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: i * 0.02 }}
+                    className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                      background: ['#a78bfa', '#c084fc', '#f472b6', '#818cf8', '#34d399', '#fbbf24'][i % 6],
+                      boxShadow: `0 0 6px ${['#a78bfa', '#c084fc', '#f472b6', '#818cf8', '#34d399', '#fbbf24'][i % 6]}`,
+                    }}
+                  />
+                ))}
+
+                {/* Sparkle stars - 6 larger sparkles */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={`sparkle-${i}`}
+                    initial={{ scale: 0, x: 0, y: 0, opacity: 0, rotate: 0 }}
+                    animate={{
+                      scale: [0, 1.5, 0],
+                      x: Math.cos(((i * 60 + 30) * Math.PI) / 180) * 28,
+                      y: Math.sin(((i * 60 + 30) * Math.PI) / 180) * 28,
+                      opacity: [0, 1, 0],
+                      rotate: [0, 180],
+                    }}
+                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 + i * 0.03 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill={['#fbbf24', '#f472b6', '#34d399', '#818cf8', '#fb923c', '#a78bfa'][i]}>
+                      <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                    </svg>
+                  </motion.div>
+                ))}
+
+                {/* Confetti trails */}
+                {[...Array(8)].map((_, i) => (
+                  <motion.div
+                    key={`confetti-${i}`}
+                    initial={{ scale: 0, x: 0, y: 0, opacity: 1, rotate: 0 }}
+                    animate={{
+                      scale: [0, 1, 0.5],
+                      x: Math.cos(((i * 45 + 22.5) * Math.PI) / 180) * 45,
+                      y: Math.sin(((i * 45 + 22.5) * Math.PI) / 180) * 45,
+                      opacity: [1, 0.8, 0],
+                      rotate: [0, 360],
+                    }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.05 }}
+                    className="absolute top-1/2 left-1/2 w-1.5 h-3 -translate-x-1/2 -translate-y-1/2 rounded-sm"
+                    style={{
+                      background: ['#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#fb923c', '#c084fc', '#22d3ee'][i],
+                    }}
+                  />
+                ))}
+              </>
+            )}
+          </AnimatePresence>
+
           <motion.div
             layout
+            animate={todo.completed ? {
+              scale: [1, 1.3, 0.9, 1.1, 1],
+              rotate: [0, -15, 15, -5, 0],
+            } : {}}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className={clsx(
               "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border",
               todo.completed
-                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_2px_8px_rgba(139,92,246,0.4)]'
+                ? 'border-violet-500 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.6)]'
                 : 'border-neu-muted/20 bg-white/70 backdrop-blur-md shadow-inner'
             )}
           >
             <motion.div
               initial={false}
-              animate={{ scale: todo.completed ? 1 : 0, opacity: todo.completed ? 1 : 0 }}
+              animate={{
+                scale: todo.completed ? [0, 1.3, 1] : 0,
+                opacity: todo.completed ? 1 : 0,
+                rotate: todo.completed ? [0, -30, 30, 0] : 0
+              }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <Check size={12} strokeWidth={3} className="drop-shadow-sm" />
             </motion.div>
@@ -322,7 +416,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
           </AnimatePresence>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - 只显示时钟和编辑按钮，删除按钮通过右键菜单访问 */}
         {!todo.completed && (
           <div className="relative z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <motion.button
@@ -346,17 +440,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onRename, onUpdateD
               title={t.rename}
             >
               <Pencil size={14} />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); onDelete(todo.id); }}
-              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                darkMode ? 'text-neu-dark-muted/50 hover:text-red-400 hover:bg-red-500/20' : 'text-neu-muted/30 hover:text-red-400 hover:bg-red-50/80'
-              }`}
-              title={t.delete}
-            >
-              <Trash2 size={14} />
             </motion.button>
           </div>
         )}
