@@ -1,84 +1,81 @@
-# <div align="center"><img src="build/icon.png" width="128" height="128" alt="SoftDo Logo"></div>
+# <div align="center"><img src="build/icon.png" width="128" height="128" alt="ToDoList Logo"></div>
 
 <div align="center">
 
-# SoftDo
+# ToDoList
 
-**The Todo Widget That Breathes.**
+**简洁优雅的桌面待办事项小部件**
 
-[Download for Windows](https://github.com/xxomega2077xx/softdo/releases/latest) • [Download for Linux](https://github.com/xxomega2077xx/softdo/releases/latest) • [Features](#features)
+[Windows 下载](https://github.com/Ti-Avanti/softdo/releases/latest) • [Linux 下载](https://github.com/Ti-Avanti/softdo/releases/latest) • [功能特性](#-功能特性)
 
 </div>
 
 ---
 
-## 🎨 Philosophy
+## ✨ 功能特性
 
-SoftDo isn't just a todo list; it's a piece of digital furniture for your desktop. Built with a "Glassmorphism First" approach, it features a frosted glass interface that adapts to your wallpaper, blurring the line between your tasks and your environment.
+### 🎨 视觉设计
+- **毛玻璃效果** - 实时背景模糊，与桌面完美融合
+- **暗色模式** - 支持明暗主题切换，保护眼睛
+- **像素字体** - 独特的像素风格字体，复古又现代
+- **流畅动画** - 任务完成时的庆祝粒子特效
 
-We believe animation isn't just decoration—it's feedback. Every interaction in SoftDo is governed by a unified physics engine (`Silky Flow`), ensuring that tasks don't just appear; they glide, breathe, and settle with satisfying weight.
+### ⏱️ 任务管理
+- **精确倒计时** - 时间显示精确到秒
+- **进度条渐变** - 颜色随进度平滑变化（紫→黄→红）
+- **快捷设置** - 15分钟、30分钟、1小时等快捷倒计时
+- **拖拽排序** - 自由调整任务顺序
 
-## ✨ Features
+### 🔔 提醒通知
+- **系统通知** - 任务到期前自动提醒
+- **多级提醒** - 24小时、1小时、30分钟、5分钟、到期时
 
-### 💎 Premium Aesthetics
+### ⚡ 便捷功能
+- **窗口置顶** - 始终显示在最前面
+- **托盘运行** - 最小化到系统托盘
+- **开机自启** - 可选开机自动启动
+- **双语支持** - 中文/英文界面切换
+- **自动更新** - 检测新版本并提醒
 
-- **Real-time Glassmorphism**: Background blurring that works seamlessly on Windows and Linux.
-- **Adaptive UI**: A responsive design that looks stunning whether pinned as a small widget or expanded as a full list.
-- **Squircle Perfection**: Every corner is smoothed with Apple-style super-ellipses for a modern, organic feel.
-
-### 🌊 Silky Animation Engine
-
-- **No Stutter**: Powered by a custom `Cubic Bezier (0.25, 0.1, 0.25, 1.0)` physics curve.
-- **Fluid Layouts**: The window height animates smoothly ("Accordion Effect") as you add tasks or open the calendar. No jarring jumps.
-- **Staggered Entry**: Lists load with a rhythmic cascade, making even checking your tasks feel like a performance.
-
-### ⚡ Power User Ready
-
-- **Natural Language Parsing**: Type "Meeting tomorrow 9am" -> It sets the due date automatically.
-- **Smart Time Detection**: Recognizes "tonight", "next friday", "in 30 mins".
-- **Compact & Pin**: Keeps your focus without stealing your screen real estate.
-- **Cross-Platform**: Now fully native on **Ubuntu/Debian Linux** (.deb, .AppImage) and **Windows** (.nsis).
-
-## 🚀 Installation
+## 🚀 安装
 
 ### Windows
 
-1. Download `SoftDo-Setup-1.5.0.exe` from [Releases](https://github.com/xxomega2077xx/softdo/releases).
-2. Run to install. It will auto-launch.
+1. 从 [Releases](https://github.com/Ti-Avanti/softdo/releases) 下载 `ToDoList-1.7.2-Windows.exe`
+2. 运行安装程序
 
-### Linux (Ubuntu/Debian)
+### Linux
 
-**Option 1: AppImage (Universal)**
-
+**AppImage (通用)**
 ```bash
-chmod +x SoftDo-1.5.0-Linux.AppImage
-./SoftDo-1.5.0-Linux.AppImage
+chmod +x ToDoList-1.7.2-Linux.AppImage
+./ToDoList-1.7.2-Linux.AppImage
 ```
 
-**Option 2: DEB Package**
-
+**DEB 包 (Debian/Ubuntu)**
 ```bash
-sudo dpkg -i softdo_1.5.0_amd64.deb
+sudo dpkg -i ToDoList-1.7.2-Linux.deb
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ 技术栈
 
-- **Core**: [Electron](https://www.electronjs.org/) + [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Motion**: [Framer Motion](https://www.framer.com/motion/)
-- **Build**: [Vite](https://vitejs.dev/) + [Electron Builder](https://www.electron.build/)
+- **框架**: Electron + React + TypeScript
+- **样式**: Tailwind CSS
+- **动画**: Framer Motion
+- **构建**: Vite + Electron Builder
 
-## 📜 License
+## 📜 开源协议
 
-MIT License © 2026 SoftDo.
-Designed with ❤️ for clarity and calm.
+MIT License © 2026
+
+本项目基于 [xxomega2077xx/softdo](https://github.com/xxomega2077xx/softdo) 开发，感谢原作者的贡献。
 
 ## 🌟 Star History
 
-<a href="https://star-history.com/#xxomega2077xx/softdo&Date">
+<a href="https://star-history.com/#Ti-Avanti/softdo&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=xxomega2077xx/softdo&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Ti-Avanti/softdo&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Ti-Avanti/softdo&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Ti-Avanti/softdo&type=Date" />
  </picture>
 </a>

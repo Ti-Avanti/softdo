@@ -13,7 +13,7 @@ import { readFileSync } from 'fs';
 
 const packageJson = JSON.parse(readFileSync(path.join(__dirname, '../package.json')));
 const CURRENT_VERSION = packageJson.version;
-const GITHUB_REPO = 'xxomega2077xx/softdo';
+const GITHUB_REPO = 'Ti-Avanti/softdo';
 // 移除未使用的常量: UPDATE_CHECK_KEY, SKIP_VERSION_KEY
 
 if (process.platform === 'win32') {
